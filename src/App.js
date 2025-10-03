@@ -1,0 +1,352 @@
+import React, { useState, useMemo } from 'react';
+import CourseNode from './Components/CourseNode';
+import ProgramSelector from './Components/ProgramSelector';
+import { eeCourses } from './Data/eeCourses';
+import { ceCourses } from './Data/ceCourses';
+import { getCourseStatus, getAvailableCourses } from './Utils/prerequisiteChecker';
+import './App.css';
+
+function App() {
+  const [selectedProgram, setSelectedProgram] = useState('EE');
+  const [completedCourses, setCompletedCourses] = useState([]);
+  const [showDetails, setShowDetails] = useState(true);
+  const [semesterFilter, setSemesterFilter] = useState('All');
+
+  const currentCourses = selectedProgram === 'EE' ? eeCourses : ceCourses;
+
+  const handleCourseClick = (courseId) => {
+    const status = getCourseStatus(courseId, completedCourses, currentCourses);
+    
+    if (status === 'completed') {
+      // Unmark as completed
+      setCompletedCourses(prev => prev.filter(id => id !== courseId));
+    } else if (status === 'available') {
+      // Mark as completed (and auto-complete corequisite)
+      const course = currentCourses[courseId];
+      const newCompleted = [courseId];
+      
+      if (course.corequisite && !completedCourses.includes(course.corequisite)) {
+        newCompleted.push(course.corequisite);
+      }
+      
+      setCompletedCourses(prev => [...prev, ...newCompleted]);
+    }
+  };
+
+  const handleProgramChange = (program) => {
+    setSelectedProgram(program);
+    setCompletedCourses([]);
+  };
+
+  const availableCourses = useMemo(
+    () => getAvailableCourses(completedCourses, currentCourses),
+    [completedCourses, currentCourses]
+  );
+
+  const categorizedCourses = useMemo(() => {
+    const categories = {
+      foundation: [],
+      genEd: [],
+      freshman: [],
+      sophomore: [],
+      junior: [],
+      senior: [],
+      elective: [],
+      capstone: []
+    };
+
+    Object.entries(currentCourses).forEach(([id, course]) => {
+      // Sort by category first
+      if (course.category === 'capstone') {
+        categories.capstone.push({ id, ...course });
+      } else if (course.category === 'elective') {
+        categories.elective.push({ id, ...course });
+      } else if (course.category === 'foundation') {
+        categories.foundation.push({ id, ...course });
+      } else if (course.category === 'gen-ed') {
+        categories.genEd.push({ id, ...course });
+      } else {
+        // Categorize core courses by typical year taken
+        if (id === 'EENG-0192' || id === 'EENG-0210' || id === 'CSCI-0229' || 
+            id === 'MATH-0207' || id === 'MATH-0208' || id === 'PHYS-310' || 
+            id === 'PHYS-313' || id === 'CHEM-0231' || id === 'CHEM-0233') {
+          categories.freshman.push({ id, ...course });
+        } else if (id.startsWith('EENG-02') || id.startsWith('EENG-0260') || 
+                   id.startsWith('EENG-221') || id.startsWith('EENG-260') ||
+                   id === 'EENG-0225' || id === 'COEG-0300' || id === 'MENG-0237' ||
+                   id === 'PHYS-311' || id === 'PHYS-314') {
+          categories.sophomore.push({ id, ...course });
+        } else if (id.startsWith('EENG-03') || id.startsWith('EENG-322') || 
+                   id.startsWith('EENG-325') || id.startsWith('EENG-330') ||
+                   id === 'COEG-0311' || id === 'COEG-0305' || id === 'EENG-0323' ||
+                   id === 'EENG-0360' || id === 'MATH-0307' || id === 'MATH-0461') {
+          categories.junior.push({ id, ...course });
+        } else {
+          // Senior level courses (EENG-04xx, COEG-04xx, etc.)
+          categories.senior.push({ id, ...course });
+        }
+      }
+    });
+
+    return categories;
+  }, [currentCourses]);
+
+  const stats = {
+    total: Object.keys(currentCourses).length,
+    completed: completedCourses.length,
+    available: availableCourses.length,
+    blocked: Object.keys(currentCourses).length - completedCourses.length - availableCourses.length
+  };
+
+  const resetProgress = () => {
+    setCompletedCourses([]);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            Interactive Prerequisite Flowchart
+          </h1>
+          <p className="text-gray-600">
+            Click courses to mark as completed. Available courses will highlight automatically.
+          </p>
+        </header>
+
+        <ProgramSelector 
+          selectedProgram={selectedProgram}
+          onProgramChange={handleProgramChange}
+        />
+
+        {/* Statistics Dashboard */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
+            <div className="text-sm text-gray-600">Total Courses</div>
+          </div>
+          <div className="bg-green-500 text-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold">{stats.completed}</div>
+            <div className="text-sm">Completed</div>
+          </div>
+          <div className="bg-yellow-400 text-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold">{stats.available}</div>
+            <div className="text-sm">Available</div>
+          </div>
+          <div className="bg-gray-400 text-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold">{stats.blocked}</div>
+            <div className="text-sm">Blocked</div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="mb-6 flex gap-4">
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all"
+          >
+            {showDetails ? 'Hide' : 'Show'} Prerequisites
+          </button>
+          <button
+            onClick={resetProgress}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+          >
+            Reset Progress
+          </button>
+        </div>
+
+        {/* Course Sections */}
+        <div className="space-y-8">
+          
+          {/* Foundation Courses */}
+          {categorizedCourses.foundation.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                📐 Foundation (Precalculus)
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {categorizedCourses.foundation.map(course => (
+                  <CourseNode
+                    key={course.id}
+                    course={course}
+                    status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                    onClick={() => handleCourseClick(course.id)}
+                    showDetails={showDetails}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* General Education */}
+          {categorizedCourses.genEd.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                📚 General Education & Support Courses
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                English, Social Sciences, Humanities, Engineering Ethics, Economics, etc.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {categorizedCourses.genEd.map(course => (
+                  <CourseNode
+                    key={course.id}
+                    course={course}
+                    status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                    onClick={() => handleCourseClick(course.id)}
+                    showDetails={showDetails}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Freshman Year */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              🎓 Freshman Year
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {categorizedCourses.freshman.map(course => (
+                <CourseNode
+                  key={course.id}
+                  course={course}
+                  status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                  onClick={() => handleCourseClick(course.id)}
+                  showDetails={showDetails}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Sophomore Year */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              📊 Sophomore Year
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {categorizedCourses.sophomore.map(course => (
+                <CourseNode
+                  key={course.id}
+                  course={course}
+                  status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                  onClick={() => handleCourseClick(course.id)}
+                  showDetails={showDetails}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Junior Year */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              ⚡ Junior Year
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {categorizedCourses.junior.map(course => (
+                <CourseNode
+                  key={course.id}
+                  course={course}
+                  status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                  onClick={() => handleCourseClick(course.id)}
+                  showDetails={showDetails}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Senior Year */}
+          <section>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              🚀 Senior Year
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {categorizedCourses.senior.map(course => (
+                <CourseNode
+                  key={course.id}
+                  course={course}
+                  status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                  onClick={() => handleCourseClick(course.id)}
+                  showDetails={showDetails}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Technical Electives (CE Only) */}
+          {categorizedCourses.elective.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-purple-800 mb-4">
+                🎯 Technical Electives (Choose 3)
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Machine Learning, AI, Cybersecurity, Software Engineering, Mobile Security
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categorizedCourses.elective.map(course => (
+                  <CourseNode
+                    key={course.id}
+                    course={course}
+                    status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                    onClick={() => handleCourseClick(course.id)}
+                    showDetails={showDetails}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Capstone */}
+          <section>
+            <h2 className="text-2xl font-bold text-red-800 mb-4">
+              🎓 Senior Design (Capstone)
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              ⚠️ Note: Same-semester option may be needed to graduate on time in 2027
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categorizedCourses.capstone.map(course => (
+                <CourseNode
+                  key={course.id}
+                  course={course}
+                  status={getCourseStatus(course.id, completedCourses, currentCourses)}
+                  onClick={() => handleCourseClick(course.id)}
+                  showDetails={showDetails}
+                />
+              ))}
+            </div>
+          </section>
+
+        </div>
+
+        {/* Progress Summary */}
+        <div className="mt-8 p-6 bg-white rounded-lg shadow">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Progress Summary</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-sm text-gray-600">Courses Completed</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-yellow-600">{stats.available}</div>
+              <div className="text-sm text-gray-600">Ready to Take</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-600">{stats.blocked}</div>
+              <div className="text-sm text-gray-600">Still Blocked</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-blue-600">
+                {Math.round((stats.completed / stats.total) * 100)}%
+              </div>
+              <div className="text-sm text-gray-600">Progress</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+export default App;
