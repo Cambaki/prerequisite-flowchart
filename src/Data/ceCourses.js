@@ -18,6 +18,17 @@ export const ceCourses = {
   'PHYS-314': { id: 'PHYS-314', name: 'General Physics II Lab', credits: 1, prerequisites: [], corequisite: 'PHYS-311', category: 'core', semesters: ['Fall','Spring'] },
 
   'LIFE-SCI': { id: 'LIFE-SCI', name: 'Science Elective (Biology)', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'ENGL-1': { id: 'ENGL-1', name: 'English Composition I', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'ENGL-2': { id: 'ENGL-2', name: 'English Composition II', credits: 3, prerequisites: ['ENGL-1'], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'TECH-WRITING': { id: 'TECH-WRITING', name: 'Technical Writing', credits: 3, prerequisites: ['ENGL-1','ENGL-2'], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'ORIENTATION': { id: 'ORIENTATION', name: 'Orientation', credits: 1, prerequisites: [], category: 'gen-ed', semesters: ['Fall'] },
+  'HUMANITIES': { id: 'HUMANITIES', name: 'Humanities Elective', credits: 2, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'SOC-SCI-1': { id: 'SOC-SCI-1', name: 'Social Science I (History/Psychology)', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'SOC-SCI-2': { id: 'SOC-SCI-2', name: 'Social Science II', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'SOC-SCI-3': { id: 'SOC-SCI-3', name: 'Social Science III', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'SOC-SCI-4': { id: 'SOC-SCI-4', name: 'Social Science IV', credits: 3, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'PE': { id: 'PE', name: 'Physical Education', credits: 2, prerequisites: [], category: 'gen-ed', semesters: ['Fall','Spring'] },
+  'ENG-ECON': { id: 'ENG-ECON', name: 'Engineering Economics', credits: 2, prerequisites: ['MATH-0207'], category: 'gen-ed', semesters: ['Fall','Spring'] },
 
   // ==================== FRESHMAN ENGINEERING / SUPPORT ====================
   'EENG-0192': { id: 'EENG-0192', name: 'Freshman Engineering Design', credits: 3, prerequisites: [], category: 'core', semesters: ['Fall'] },
