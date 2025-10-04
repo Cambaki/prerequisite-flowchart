@@ -64,43 +64,83 @@ function AppContent() {
     });
   }, []);
 
+  // Get current courses based on selected program
   const currentCourses = useMemo(() => {
-    return selectedProgram === 'EE' ? eeCourses : ceCourses;
-  }, [selectedProgram]);
-
-  const handleCourseClick = (courseId) => {
-    const status = getCourseStatus(courseId, completedCourses, currentCourses);
-
-    // Only allow toggling completed when the course is available or already completed
-    if (status === 'completed') {
-      setCompletedCourses(prev => prev.filter(id => id !== courseId));
-      return;
+    console.log('Current program:', selectedProgram);
+    
+    if (!eeCourses && !ceCourses) {
+      console.error('Course data not loaded');
+      return {};
     }
 
-    if (status !== 'available') return; // locked/blocked - do nothing
+    try {
+      if (selectedProgram === 'EE') {
+        if (!eeCourses || typeof eeCourses !== 'object') {
+          throw new Error('EE courses not loaded or invalid');
+        }
+        return eeCourses;
+      } else if (selectedProgram === 'CE') {
+        if (!ceCourses || typeof ceCourses !== 'object') {
+          throw new Error('CE courses not loaded or invalid');
+        }
+        return ceCourses;
+      }
+      
+      throw new Error(`Invalid program selected: ${selectedProgram}`);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      return {};
+    }
+  }, [selectedProgram, eeCourses, ceCourses]);
 
-    // Mark course as completed and also mark corequisites (same-semester labs)
-    const course = currentCourses[courseId];
-    const coreqs = Array.isArray(course.corequisite) ? course.corequisite : (course.corequisite ? [course.corequisite] : []);
+  // Handle clicking a course
+  const handleCourseClick = (courseId) => {
+    try {
+      const status = getCourseStatus(courseId, completedCourses, currentCourses);
+      
+      if (status === 'completed') {
+        // Unmark as completed
+        setCompletedCourses(prev => prev.filter(id => id !== courseId));
+      } else if (status === 'available') {
+        // Mark as completed (and auto-complete corequisite)
+        const course = currentCourses[courseId];
+        if (!course) {
+          throw new Error(`Course ${courseId} not found`);
+        }
 
-    setCompletedCourses(prev => {
-      const newSet = new Set(prev);
-      newSet.add(courseId);
-      coreqs.forEach(cq => { if (cq) newSet.add(cq); });
-      return Array.from(newSet);
-    });
+        const newCompleted = [courseId];
+        
+        if (course.corequisite && !completedCourses.includes(course.corequisite)) {
+          newCompleted.push(course.corequisite);
+        }
+        
+        setCompletedCourses(prev => [...prev, ...newCompleted]);
+      }
+    } catch (error) {
+      console.error('Error handling course click:', error);
+    }
   };
 
+  // Handle program change
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
     setCompletedCourses([]);
   };
 
-  // Calculate available courses using the prerequisite checker
+  // Get available courses
   const availableCourses = useMemo(() => {
-    return getAvailableCourses(completedCourses, currentCourses);
+    try {
+      if (!currentCourses || typeof currentCourses !== 'object') {
+        throw new Error('Invalid course data');
+      }
+      return getAvailableCourses(completedCourses, currentCourses);
+    } catch (error) {
+      console.error('Error getting available courses:', error);
+      return [];
+    }
   }, [completedCourses, currentCourses]);
 
+  // Categorize courses
   const categorizedCourses = useMemo(() => {
     try {
       const categories = {
@@ -176,24 +216,13 @@ function AppContent() {
     }
   }, [currentCourses]);
 
+  // Calculate statistics
   const stats = useMemo(() => ({
     total: Object.keys(currentCourses).length,
     completed: completedCourses.length,
     available: availableCourses.length,
     blocked: Object.keys(currentCourses).length - completedCourses.length - availableCourses.length
   }), [currentCourses, completedCourses, availableCourses]);
-
-  // Credit counters
-  const creditTotals = useMemo(() => {
-    let completedCredits = 0;
-    let totalCredits = 0;
-    Object.values(currentCourses).forEach(c => {
-      const cr = Number(c.credits) || 0;
-      totalCredits += cr;
-      if (completedCourses.includes(c.id)) completedCredits += cr;
-    });
-    return { completedCredits, totalCredits, remaining: totalCredits - completedCredits };
-  }, [currentCourses, completedCourses]);
 
   const resetProgress = () => {
     setCompletedCourses([]);
@@ -232,22 +261,6 @@ function AppContent() {
         <div className="bg-gray-400 text-white p-4 rounded-lg shadow">
           <div className="text-2xl font-bold">{stats.blocked}</div>
           <div className="text-sm">Blocked</div>
-        </div>
-      </div>
-
-      {/* Credit Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-blue-600">{creditTotals.completedCredits}</div>
-          <div className="text-sm text-gray-600">Credits Completed</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-gray-800">{creditTotals.totalCredits}</div>
-          <div className="text-sm text-gray-600">Total Program Credits</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-red-600">{creditTotals.remaining}</div>
-          <div className="text-sm text-gray-600">Credits Remaining</div>
         </div>
       </div>
 
@@ -428,6 +441,7 @@ function AppContent() {
             ))}
           </div>
         </section>
+
       </div>
 
       {/* Progress Summary */}
@@ -454,11 +468,12 @@ function AppContent() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
 
-// Main App component
+// Main App component with error boundary
 function App() {
   return (
     <ErrorBoundary>
