@@ -5,20 +5,22 @@ export const eeCourses = {
   'MATH-0107': {
     id: 'MATH-0107',
     name: 'Precalculus Algebra',
-    credits: 3,
+    credits: 4,
     prerequisites: [],
     description: 'Precalculus algebra covering functions, polynomials, exponential and logarithmic functions, and equations needed for calculus readiness.',
     category: 'foundation',
-    semesters: ['Fall', 'Spring']
+    semesters: ['Fall', 'Spring'],
+    countForDegree: false
   },
   'MATH-0108': {
     id: 'MATH-0108',
     name: 'Precalculus Trigonometry',
-    credits: 3,
+    credits: 4,
     prerequisites: [],
     description: 'Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
     category: 'foundation',
-    semesters: ['Fall', 'Spring']
+    semesters: ['Fall', 'Spring'],
+    countForDegree: false
   },
   'MATH-0207': {
     id: 'MATH-0207',
@@ -420,7 +422,7 @@ export const eeCourses = {
     name: 'Electronics I Lab',
     credits: 1,
     // Mirror Electronics I prerequisites (exclude lab IDs)
-    prerequisites: ['EENG-0322'],
+    prerequisites: ['EENG-0322', 'EENG-322L'],
     description: 'Experimental study of electronic circuits, device characteristics, amplifiers, and switching applications.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0325',
@@ -431,7 +433,8 @@ export const eeCourses = {
     id: 'EENG-0330',
     name: 'Electronics II',
     credits: 3,
-    prerequisites: ['EENG-0325','EENG-325L'],
+    // Fix typo: require Electronics I lecture and its lab (use correct lab id EENG-0325L)
+    prerequisites: ['EENG-0325','EENG-0325L'],
     corequisite: 'EENG-0330L',
     description: 'Continuation of Electronics I; advanced transistor circuits, operational amplifiers, analog signal processing.',
     offered: 'All Terms, All Years',
