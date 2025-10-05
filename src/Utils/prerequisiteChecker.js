@@ -21,7 +21,9 @@ const collectMissingPrereqs = (courseId, completedCourses, allCourses, visited =
     // traverse that prereq's prerequisites to show the full chain.
     missing.push(prereq);
     const nested = collectMissingPrereqs(prereq, completedCourses, allCourses, visited);
-    missing = missing.concat(nested.filter(m => !missing.includes(m)));
+    for (const m of nested) {
+      if (!missing.includes(m)) missing.push(m);
+    }
   }
 
   return missing;

@@ -54,7 +54,6 @@ function AppContent() {
   const [selectedProgram, setSelectedProgram] = useState('EE');
   const [completedCourses, setCompletedCourses] = useState([]);
   const [showDetails, setShowDetails] = useState(true);
-  const [semesterFilter, setSemesterFilter] = useState('All');
 
   // Debug logging
   useEffect(() => {

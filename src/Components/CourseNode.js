@@ -48,20 +48,35 @@ export const CourseNode = ({ course, status, onClick, showDetails }) => {
       <div className="text-sm font-medium mb-1">{course.name}</div>
       <div className="text-xs opacity-90">{course.credits} credits</div>
       
-      {showDetails && course.prerequisites && course.prerequisites.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-white border-opacity-30">
-          <div className="text-xs">
-            <strong>Prerequisites:</strong>
-            <div className="mt-1">
-              {course.prerequisites.join(', ')}
+      {showDetails && (
+        <div className="mt-2 pt-2 border-t border-white border-opacity-30 text-xs">
+          {course.description && (
+            <div className="mb-2">
+              <strong>Description:</strong>
+              <div className="mt-1 text-xs opacity-90">{course.description}</div>
             </div>
-          </div>
-        </div>
-      )}
-      
-      {showDetails && course.corequisite && (
-        <div className="mt-1 text-xs">
-          <strong>Corequisite:</strong> {course.corequisite}
+          )}
+
+          {course.offered && (
+            <div className="mb-2">
+              <strong>Offered:</strong>
+              <div className="mt-1">{course.offered}</div>
+            </div>
+          )}
+
+          {course.prerequisites && course.prerequisites.length > 0 && (
+            <div className="mb-2">
+              <strong>Prerequisites:</strong>
+              <div className="mt-1">{course.prerequisites.join(', ')}</div>
+            </div>
+          )}
+
+          {course.corequisite && (
+            <div className="mb-1">
+              <strong>Corequisite:</strong>{' '}
+              {Array.isArray(course.corequisite) ? course.corequisite.join(', ') : course.corequisite}
+            </div>
+          )}
         </div>
       )}
     </div>
