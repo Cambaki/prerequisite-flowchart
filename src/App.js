@@ -189,9 +189,11 @@ function AppContent() {
     let completedCredits = 0;
     let availableCredits = 0;
     Object.entries(currentCourses).forEach(([id, c]) => {
+      // Courses marked with countForDegree: false do not contribute to graduation credit totals
+      const counts = c.countForDegree !== false;
       const cr = Number(c.credits) || 0;
-      availableCredits += cr;
-      if (completedCourses.includes(id)) completedCredits += cr;
+      if (counts) availableCredits += cr;
+      if (counts && completedCourses.includes(id)) completedCredits += cr;
     });
 
     // Default: requiredCredits equals availableCredits (all courses required)
