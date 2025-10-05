@@ -7,6 +7,7 @@ export const eeCourses = {
     name: 'Precalculus Algebra',
     credits: 3,
     prerequisites: [],
+    description: 'Precalculus algebra covering functions, polynomials, exponential and logarithmic functions, and equations needed for calculus readiness.',
     category: 'foundation',
     semesters: ['Fall', 'Spring']
   },
@@ -15,6 +16,7 @@ export const eeCourses = {
     name: 'Precalculus Trigonometry',
     credits: 3,
     prerequisites: [],
+    description: 'Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
     category: 'foundation',
     semesters: ['Fall', 'Spring']
   },
@@ -23,6 +25,7 @@ export const eeCourses = {
     name: 'Calculus I',
     credits: 4,
     prerequisites: ['MATH-0107', 'MATH-0108'],
+    description: 'Introduction to differential and integral calculus of a single variable: limits, derivatives, applications, and basic integration.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -31,6 +34,7 @@ export const eeCourses = {
     name: 'Calculus II',
     credits: 4,
     prerequisites: ['MATH-0207'],
+    description: 'Techniques of integration, applications, sequences and series, and introductory differential equations relevant to engineering.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -39,6 +43,7 @@ export const eeCourses = {
     name: 'Calculus III',
     credits: 4,
     prerequisites: ['MATH-0207', 'MATH-0208'],
+    description: 'Multivariable calculus including partial derivatives, multiple integrals, vector calculus, and applications to physical systems.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -47,6 +52,7 @@ export const eeCourses = {
     name: 'Engineering Math',
     credits: 3,
     prerequisites: ['EENG-0225'],
+    description: 'Engineering-focused differential equations and linear algebra: solution techniques, matrix methods, and applications to systems modeling.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -58,6 +64,7 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['MATH-0207'],
     corequisite: 'PHYS-313',
+    description: 'Mechanics: motion, forces, energy, momentum, rotational dynamics, and oscillations; foundation for later physics and engineering courses.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -67,6 +74,7 @@ export const eeCourses = {
     credits: 1,
     prerequisites: [],
     corequisite: 'PHYS-310',
+    description: 'Laboratory experiments supporting Physics I topics such as kinematics, dynamics, energy, and measurement techniques.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -76,6 +84,7 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['PHYS-310'],
     corequisite: 'PHYS-314',
+    description: 'Electricity, magnetism, waves, and optics; builds on Physics I and supports electromagnetics and circuits courses.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -85,6 +94,7 @@ export const eeCourses = {
     credits: 1,
     prerequisites: [],
     corequisite: 'PHYS-311',
+    description: 'Laboratory for Physics II focusing on circuits, electromagnetism, and wave phenomena experiments.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -97,6 +107,7 @@ export const eeCourses = {
     prerequisites: [],
     // Chemistry must be taken with its lab and with Precalculus (MATH-0107) or higher
     corequisite: ['CHEM-0233', 'MATH-0107'],
+    description: 'Fundamental concepts in chemistry including atomic structure, bonding, stoichiometry, thermodynamics, kinetics, and equilibria.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -106,6 +117,7 @@ export const eeCourses = {
     credits: 1,
     prerequisites: [],
     corequisite: 'CHEM-0231',
+    description: 'Experimental laboratory exercises that reinforce concepts from General Chemistry through hands-on measurements and analysis.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -120,7 +132,7 @@ export const eeCourses = {
     description: 'Biology elective covering foundational topics in life sciences; may include cell biology, ecology, genetics, and organismal biology.',
     semesters: ['Fall', 'Spring']
   },
-  'ENGL-1': {
+  'ENGL-0101': {
     id: 'ENGL-1',
     name: 'English Composition I',
     credits: 3,
@@ -129,32 +141,23 @@ export const eeCourses = {
     description: 'Introduction to college-level writing, focusing on essay composition, grammar, style, organization, and critical thinking.',
     semesters: ['Fall', 'Spring']
   },
-  'ENGL-2': {
-    id: 'ENGL-2',
+  'ENGL-0102': {
+    id: 'ENGL-0102',
     name: 'English Composition II',
     credits: 3,
-    prerequisites: ['ENGL-1'],
+    prerequisites: ['ENGL-0101'],
     category: 'gen-ed',
-    description: 'Continuation of ENGL-1, emphasizing research writing, argumentation, documentation, and advanced rhetorical techniques.',
+    description: 'Continuation of ENGL-0101, emphasizing research writing, argumentation, documentation, and advanced rhetorical techniques.',
     semesters: ['Fall', 'Spring']
   },
-  'TECH-WRITING': {
-    id: 'TECH-WRITING',
+  'ENGL-0203': {
+    id: 'ENGL-0203',
     name: 'Technical Writing',
     credits: 3,
-    prerequisites: ['ENGL-1', 'ENGL-2'],
+    prerequisites: ['ENGL-0101', 'ENGL-0202'],
     category: 'gen-ed',
     description: 'Development of professional writing skills, including technical reports, proposals, manuals, and visual documentation for engineering contexts.',
     semesters: ['Fall', 'Spring']
-  },
-  'ORIENTATION': {
-    id: 'ORIENTATION',
-    name: 'Orientation',
-    credits: 1,
-    prerequisites: [],
-    category: 'gen-ed',
-    description: 'Course focused on personal and professional development, including goal setting, self-assessment, and effective communication skills.',
-    semesters: ['Fall']
   },
   'OREN-0100': {
     id: 'OREN-0100',
@@ -228,15 +231,25 @@ export const eeCourses = {
     description: 'Study of political systems, governmental structures, political behavior, and public policy processes.',
     semesters: ['Fall', 'Spring']
   },
-  'PE': {
-    id: 'PE',
+  'PE-1': {
+    id: 'PE-1',
     name: 'Physical Education',
-    credits: 2,
+    credits: 1,
     prerequisites: [],
     category: 'gen-ed',
     description: 'Physical activity course focusing on fitness, health, and basic athletic skills.',
     semesters: ['Fall', 'Spring']
   },
+    'PE-2': {
+    id: 'PE-2',
+    name: 'Physical Education',
+    credits: 1,
+    prerequisites: [],
+    category: 'gen-ed',
+    description: 'Physical activity course focusing on fitness, health, and basic athletic skills.',
+    semesters: ['Fall', 'Spring']
+  },
+ 
   'EENG-0441': {
     id: 'EENG-0441',
     name: 'EIT Review',
@@ -250,16 +263,8 @@ export const eeCourses = {
     name: 'Engineering Economics',
     credits: 2,
     prerequisites: [],
+    description: 'Principles of engineering economics: time value of money, cost-benefit analysis, interest calculations, and decision-making for projects.',
     category: 'gen-ed',
-    semesters: ['Fall', 'Spring']
-  },
-  'ENG-ECON': {
-    id: 'ENG-ECON',
-    name: 'Engineering Economics',
-    credits: 2,
-    prerequisites: ['MATH-0207'],
-    category: 'gen-ed',
-    description: 'Introduction to economic principles relevant to engineering, project analysis, cost estimation, and decision-making under constraints.',
     semesters: ['Fall', 'Spring']
   },
 
@@ -269,6 +274,7 @@ export const eeCourses = {
     name: 'Freshman Design',
     credits: 3,
     prerequisites: [],
+    description: 'Introductory design course for first-year engineering students covering design thinking, teamwork, basic prototyping, and problem definition.',
     category: 'core',
     semesters: ['Fall'] // ✅ Fall only
   },
@@ -287,6 +293,7 @@ export const eeCourses = {
     name: 'Intro to C++ Programming',
     credits: 3,
     prerequisites: ['EENG-0192'],
+    description: 'Introduction to C++: basic syntax, data types, control flow, functions, and introductory object-oriented programming concepts for engineering applications.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -295,17 +302,18 @@ export const eeCourses = {
     name: 'Probability & Statistics for Engineers',
     credits: 3,
     prerequisites: ['MATH-0207'],
+    description: 'Probability and statistics fundamentals for engineering applications, covering distributions, estimation, hypothesis testing, and regression.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
-
   // ==================== CIRCUITS SEQUENCE ====================
   'EENG-0221': {
     id: 'EENG-0221',
     name: 'Circuits I',
     credits: 3,
     prerequisites: ['EENG-0192', 'MATH-0207'],
-    description: 'Study of basic electric circuits, including Ohm’s Law, Kirchhoff’s Laws, network theorems, transient and steady-state analysis of DC and AC circuits.',
+    description: 'Review course preparing students for the Engineer-in-Training (EIT) exam, covering core engineering topics and exam strategies.',
+    category: 'support',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-221L',
     category: 'core',
@@ -373,6 +381,7 @@ export const eeCourses = {
     name: 'Differential Equations & Linear Algebra',
     credits: 4,
     prerequisites: ['MATH-0208'],
+    description: 'Differential equations and linear algebra with engineering applications, including matrix methods, eigenvalues, and systems of linear differential equations.',
     category: 'core',
     semesters: ['Spring'] // ❌✅ Spring only
   },
@@ -464,6 +473,7 @@ export const eeCourses = {
     name: 'Engineering Ethics & Society',
     credits: 3,
     prerequisites: [],
+    description: 'Study of professional ethics, societal impacts of engineering decisions, responsibilities of engineers, and case studies in ethical dilemmas.',
     category: 'gen-ed',
     semesters: ['Fall', 'Spring']
   },
@@ -505,14 +515,7 @@ export const eeCourses = {
     description: 'Study of electrical energy generation, transmission, distribution, and basic power system operation and analysis.',
     semesters: ['Fall', 'Spring'] // ✅✅ Both (updated per your note)
   },
-  'EENG-424L': {
-    id: 'EENG-424L',
-    name: 'Senior Electrical Lab',
-    credits: 1,
-    prerequisites: ['EENG-0330', 'EENG-0330L'],
-    category: 'capstone',
-    semesters: ['Spring'] // ❌✅ Spring only
-  },
+  
   // Computer Network Design removed - CE course only
 
   'EENG-0431': {
