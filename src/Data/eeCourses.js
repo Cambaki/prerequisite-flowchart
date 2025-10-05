@@ -160,7 +160,7 @@ export const eeCourses = {
     id: 'ENGL-0203',
     name: 'Technical Writing',
     credits: 3,
-    prerequisites: ['ENGL-0101', 'ENGL-0202'],
+    prerequisites: ['ENGL-0101', 'ENGL-0102'],
     category: 'gen-ed',
     description: 'Development of professional writing skills, including technical reports, proposals, manuals, and visual documentation for engineering contexts.',
     semesters: ['Fall', 'Spring']
