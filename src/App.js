@@ -183,16 +183,25 @@ function AppContent() {
   }), [currentCourses, completedCourses, availableCourses]);
 
   // Credit counters
+  // For CE program we treat required program credits as 131 (user-requested).
+  // availableCredits is the sum of all courses in the catalog (the "168 available").
   const creditTotals = useMemo(() => {
     let completedCredits = 0;
-    let totalCredits = 0;
-    Object.values(currentCourses).forEach(c => {
+    let availableCredits = 0;
+    Object.entries(currentCourses).forEach(([id, c]) => {
       const cr = Number(c.credits) || 0;
-      totalCredits += cr;
-      if (completedCourses.includes(c.id)) completedCredits += cr;
+      availableCredits += cr;
+      if (completedCourses.includes(id)) completedCredits += cr;
     });
-    return { completedCredits, totalCredits, remaining: totalCredits - completedCredits };
-  }, [currentCourses, completedCourses]);
+
+    // Default: requiredCredits equals availableCredits (all courses required)
+    let requiredCredits = availableCredits;
+    // Graduation requirement: 129 credits for both CE and EE programs
+    requiredCredits = 129;
+
+    const remaining = Math.max(0, requiredCredits - completedCredits);
+    return { completedCredits, requiredCredits, availableCredits, remaining };
+  }, [currentCourses, completedCourses, selectedProgram]);
 
   const resetProgress = () => {
     setCompletedCourses([]);
@@ -241,12 +250,13 @@ function AppContent() {
           <div className="text-sm text-gray-600">Credits Completed</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-2xl font-bold text-gray-800">{creditTotals.totalCredits}</div>
-          <div className="text-sm text-gray-600">Total Program Credits</div>
+          <div className="text-2xl font-bold text-gray-800">{creditTotals.requiredCredits}</div>
+          <div className="text-sm text-gray-600">Required for Graduation</div>
+          <div className="text-xs text-gray-500 mt-1">Available catalog credits: {creditTotals.availableCredits}</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="text-2xl font-bold text-red-600">{creditTotals.remaining}</div>
-          <div className="text-sm text-gray-600">Credits Remaining</div>
+          <div className="text-sm text-gray-600">Credits Remaining (to required)</div>
         </div>
       </div>
 

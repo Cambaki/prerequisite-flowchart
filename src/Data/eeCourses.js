@@ -72,7 +72,8 @@ export const eeCourses = {
     id: 'PHYS-313',
     name: 'Physics I Lab',
     credits: 1,
-    prerequisites: [],
+    // Match lecture prerequisites (PHYS-310 requires MATH-0207)
+    prerequisites: ['MATH-0207'],
     corequisite: 'PHYS-310',
     description: 'Laboratory experiments supporting Physics I topics such as kinematics, dynamics, energy, and measurement techniques.',
     category: 'core',
@@ -92,7 +93,8 @@ export const eeCourses = {
     id: 'PHYS-314',
     name: 'Physics II Lab',
     credits: 1,
-    prerequisites: [],
+    // Match lecture prerequisites (PHYS-311 requires PHYS-310)
+    prerequisites: ['PHYS-310'],
     corequisite: 'PHYS-311',
     description: 'Laboratory for Physics II focusing on circuits, electromagnetism, and wave phenomena experiments.',
     category: 'core',
@@ -115,6 +117,7 @@ export const eeCourses = {
     id: 'CHEM-0233',
     name: 'General Chemistry Lab',
     credits: 1,
+    // Match lecture prerequisites (CHEM-0231 has no formal prerequisites)
     prerequisites: [],
     corequisite: 'CHEM-0231',
     description: 'Experimental laboratory exercises that reinforce concepts from General Chemistry through hands-on measurements and analysis.',
@@ -133,9 +136,10 @@ export const eeCourses = {
     semesters: ['Fall', 'Spring']
   },
   'ENGL-0101': {
-    id: 'ENGL-1',
+    id: 'ENGL-0101',
     name: 'English Composition I',
     credits: 3,
+    // No prerequisites - unlocked for students
     prerequisites: [],
     category: 'gen-ed',
     description: 'Introduction to college-level writing, focusing on essay composition, grammar, style, organization, and critical thinking.',
@@ -312,18 +316,17 @@ export const eeCourses = {
     name: 'Circuits I',
     credits: 3,
     prerequisites: ['EENG-0192', 'MATH-0207'],
-    description: 'Review course preparing students for the Engineer-in-Training (EIT) exam, covering core engineering topics and exam strategies.',
-    category: 'support',
+  description: 'Study of basic electric circuits, including Ohm’s Law, Kirchhoff’s Laws, network theorems, transient and steady-state analysis of DC and AC circuits.',
     offered: 'All Terms, All Years',
-    corequisite: 'EENG-221L',
-    category: 'core',
+  corequisite: 'EENG-221L',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
   },
   'EENG-221L': {
     id: 'EENG-221L',
     name: 'Circuits I Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Circuits I prerequisites (exclude lab IDs to avoid circular refs)
+    prerequisites: ['EENG-0192', 'MATH-0207'],
     description: 'Laboratory experiments to supplement EENG-0221. Includes practical circuit construction, measurement, and analysis.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0221',
@@ -356,7 +359,8 @@ export const eeCourses = {
     id: 'EENG-322L',
     name: 'Circuits II Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Circuits II prerequisites (exclude other lab IDs)
+    prerequisites: ['EENG-0221', 'MATH-0208'],
     description: 'Laboratory experiments to accompany EENG-0322. Includes circuit construction, measurement, and analysis.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0322',
@@ -367,7 +371,8 @@ export const eeCourses = {
     id: 'EENG-260L',
     name: 'Logic Circuits Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Intro to Logic Circuits prerequisites
+    prerequisites: ['EENG-0192'],
     description: 'Laboratory and design experiences accompanying EENG-0260. Practical implementation of logic circuits and troubleshooting.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0260',
@@ -414,7 +419,8 @@ export const eeCourses = {
     id: 'EENG-0325L',
     name: 'Electronics I Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Electronics I prerequisites (exclude lab IDs)
+    prerequisites: ['EENG-0322'],
     description: 'Experimental study of electronic circuits, device characteristics, amplifiers, and switching applications.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0325',
@@ -436,7 +442,8 @@ export const eeCourses = {
     id: 'EENG-0330L',
     name: 'Electronics II Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Electronics II prerequisites (exclude lab IDs)
+    prerequisites: ['EENG-0325'],
     description: 'Laboratory for EENG-0330. Conventional and experimental study of electronic circuit design and analysis.',
     offered: 'All Terms, All Years',
     corequisite: 'EENG-0330',
@@ -491,7 +498,8 @@ export const eeCourses = {
     id: 'EENG-0400L',
     name: 'Senior Electrical Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Microelectronics prerequisites
+    prerequisites: ['EENG-0330','EENG-0315'],
     description: 'Laboratory and design experience to accompany EENG-0400. Includes semiconductor devices, power systems, and circuits.',
     corequisite: 'EENG-0400',
     category: 'capstone',
@@ -513,7 +521,8 @@ export const eeCourses = {
     prerequisites: ['EENG-0315', 'EENG-0322', 'EENG-322L', 'EENG-0225'],
     category: 'core',
     description: 'Study of electrical energy generation, transmission, distribution, and basic power system operation and analysis.',
-    semesters: ['Fall', 'Spring'] // ✅✅ Both (updated per your note)
+  // Per offering sheet: Fall only
+  semesters: ['Fall']
   },
   
   // Computer Network Design removed - CE course only
@@ -525,13 +534,15 @@ export const eeCourses = {
     prerequisites: ['EENG-0323'],
     category: 'core',
     description: 'Analysis and design of feedback control systems, transfer functions, stability, and frequency response methods.',
-    semesters: ['Spring'] // ❌✅ Spring only
+  // Per offering sheet: Spring only
+  semesters: ['Spring']
   },
   'EENG-431L': {
     id: 'EENG-431L',
     name: 'Control Systems Lab',
     credits: 1,
-    prerequisites: [],
+    // Mirror Control Systems prerequisites
+    prerequisites: ['EENG-0323'],
     corequisite: 'EENG-0431',
     category: 'core',
     description: 'Experimental study of feedback control systems, components, open-loop and closed-loop analysis, and computer-aided design.',
