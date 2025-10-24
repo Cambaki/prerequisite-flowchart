@@ -252,11 +252,23 @@ function AppContent() {
       {/* Math Readiness Popup */}
       {showMathReadinessPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Math Readiness Check</h2>
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Program & Math Readiness Check</h2>
             <p className="text-gray-600 mb-6">
-              To help plan your course sequence, please select your current math preparation level:
+              First, confirm your program and select your current math preparation level:
             </p>
+            
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2">Your Program:</h3>
+              <div className="text-sm text-blue-700">
+                <strong>{selectedProgram === 'EE' ? 'Electrical Engineering (EE)' : 'Computer Engineering (CE)'}</strong>
+                <div className="text-xs mt-1">
+                  You can change this using the program selector above if needed.
+                </div>
+              </div>
+            </div>
+            
+            <h3 className="font-semibold text-gray-800 mb-3">Math Preparation Level:</h3>
             
             <div className="space-y-3">
               <button

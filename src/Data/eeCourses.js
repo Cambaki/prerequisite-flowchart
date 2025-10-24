@@ -570,16 +570,5 @@ export const eeCourses = {
     category: 'capstone',
     description: 'Continuation of Senior Design I. Students complete the steps of the design process, build prototypes, and present solutions.',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
-  },
-
-  // ==================== SPECIAL TOPICS ====================
-  'COEG-0493': {
-    id: 'COEG-0493',
-    name: 'Special Topics in Computer Engineering',
-    credits: 3,
-    prerequisites: [], // Approval of Instructor and Department Head
-    description: 'Advanced topics in computer engineering not covered in regular courses. Content varies by semester based on current technological developments and student interest. Requires approval of instructor and department head.',
-    category: 'elective',
-    semesters: ['Fall', 'Spring']
   }
 };
