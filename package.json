@@ -14,7 +14,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-  "build:esbuild": "esbuild src/index.js --bundle --outfile=dist/bundle.js --loader:.js=jsx --define:process.env.NODE_ENV=\\\"production\\\" --minify",
+    "build:esbuild": "esbuild src/index.js --bundle --outfile=dist/bundle.js --loader:.js=jsx --define:process.env.NODE_ENV=\\\"production\\\" --minify",
     "copy:assets": "node scripts/copy-assets.js",
     "build:static": "npm run build:esbuild && npm run copy:assets"
   },

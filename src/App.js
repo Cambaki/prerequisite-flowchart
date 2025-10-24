@@ -54,6 +54,8 @@ function AppContent() {
   const [selectedProgram, setSelectedProgram] = useState('EE');
   const [completedCourses, setCompletedCourses] = useState([]);
   const [showDetails, setShowDetails] = useState(true);
+  const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
+  const [mathReadinessLevel, setMathReadinessLevel] = useState(null);
 
   // Debug logging
   useEffect(() => {
@@ -93,6 +95,23 @@ function AppContent() {
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
     setCompletedCourses([]);
+  };
+
+  const handleMathReadiness = (level) => {
+    setMathReadinessLevel(level);
+    setShowMathReadinessPopup(false);
+    
+    // Auto-complete prerequisites based on math readiness level
+    if (level === 'calculus-ready') {
+      // Student can start with Calculus I immediately
+      setCompletedCourses(['MATH-0107', 'MATH-0108']);
+    } else if (level === 'precalc-trig-ready') {
+      // Student needs Precalculus Trigonometry before Calculus I
+      setCompletedCourses(['MATH-0107']);
+    } else if (level === 'precalc-algebra-ready') {
+      // Student needs both Precalculus courses before Calculus I
+      setCompletedCourses([]);
+    }
   };
 
   // Calculate available courses using the prerequisite checker
@@ -212,13 +231,68 @@ function AppContent() {
   return (
     <div className="max-w-7xl mx-auto">
       <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          Interactive Prerequisite Flowchart
-        </h1>
-        <p className="text-gray-600">
-          Click courses to mark as completed. Available courses will highlight automatically.
-        </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Interactive Prerequisite Flowchart
+            </h1>
+            <p className="text-gray-600">
+              Click courses to mark as completed. Available courses will highlight automatically.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowMathReadinessPopup(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+          >
+            Change Math Level
+          </button>
+        </div>
       </header>
+
+      {/* Math Readiness Popup */}
+      {showMathReadinessPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Math Readiness Check</h2>
+            <p className="text-gray-600 mb-6">
+              To help plan your course sequence, please select your current math preparation level:
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleMathReadiness('calculus-ready')}
+                className="w-full p-4 text-left bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
+              >
+                <div className="font-semibold text-green-800">Ready for Calculus I</div>
+                <div className="text-sm text-green-600">I have completed Precalculus Algebra & Trigonometry (or equivalent)</div>
+              </button>
+              
+              <button
+                onClick={() => handleMathReadiness('precalc-trig-ready')}
+                className="w-full p-4 text-left bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-lg transition-colors"
+              >
+                <div className="font-semibold text-yellow-800">Need Precalculus Trigonometry</div>
+                <div className="text-sm text-yellow-600">I have completed Precalculus Algebra but need Trigonometry</div>
+              </button>
+              
+              <button
+                onClick={() => handleMathReadiness('precalc-algebra-ready')}
+                className="w-full p-4 text-left bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+              >
+                <div className="font-semibold text-red-800">Need Precalculus Algebra</div>
+                <div className="text-sm text-red-600">I need to start with Precalculus Algebra</div>
+              </button>
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800">
+                <strong>Note:</strong> Calculus I (MATH 0207) requires both MATH 0107 (Precalculus Algebra) 
+                and MATH 0108 (Precalculus Trigonometry) as prerequisites.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ProgramSelector 
         selectedProgram={selectedProgram}

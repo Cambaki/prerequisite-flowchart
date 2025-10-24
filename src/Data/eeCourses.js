@@ -398,7 +398,7 @@ export const eeCourses = {
     id: 'EENG-0323',
     name: 'Signals & Systems',
     credits: 3,
-    prerequisites: ['EENG-0225'],
+    prerequisites: ['EENG-0322', 'EENG-322L', 'EENG-0225'],
     description: 'Analysis of continuous and discrete-time signals and systems, Fourier and Laplace transforms, convolution, stability, and frequency response.',
     offered: 'All Terms, All Years',
     category: 'core',
@@ -469,7 +469,7 @@ export const eeCourses = {
   // ==================== ELECTROMAGNETICS ====================
   'EENG-0315': {
     id: 'EENG-0315',
-    name: 'Electromagnetics',
+    name: 'Electromagnetic Theory & Appl',
     credits: 3,
     prerequisites: ['EENG-0225', 'EENG-0322', 'EENG-322L'],
     category: 'core',
@@ -570,5 +570,16 @@ export const eeCourses = {
     category: 'capstone',
     description: 'Continuation of Senior Design I. Students complete the steps of the design process, build prototypes, and present solutions.',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
+  },
+
+  // ==================== SPECIAL TOPICS ====================
+  'COEG-0493': {
+    id: 'COEG-0493',
+    name: 'Special Topics in Computer Engineering',
+    credits: 3,
+    prerequisites: [], // Approval of Instructor and Department Head
+    description: 'Advanced topics in computer engineering not covered in regular courses. Content varies by semester based on current technological developments and student interest. Requires approval of instructor and department head.',
+    category: 'elective',
+    semesters: ['Fall', 'Spring']
   }
 };
