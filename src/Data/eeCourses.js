@@ -17,7 +17,7 @@ export const eeCourses = {
     name: 'Precalculus Trigonometry',
     credits: 4,
     prerequisites: [],
-    description: 'Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
+    description: 'NOTE: May be skipped with department approval if brought up during advising. Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
     category: 'foundation',
     semesters: ['Fall', 'Spring'],
     countForDegree: false
