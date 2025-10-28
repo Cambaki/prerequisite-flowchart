@@ -161,12 +161,12 @@ function AppContent() {
             } else if (id.startsWith('EENG-02') || id.startsWith('EENG-0260') || 
                       id.startsWith('EENG-221') || id.startsWith('EENG-260') ||
                       id === 'EENG-0225' || id === 'COEG-0300' || id === 'MENG-0237' ||
-                      id === 'PHYS-311' || id === 'PHYS-314') {
+                      id === 'MATH-0209' || id === 'PHYS-311' || id === 'PHYS-314') {
               categories.sophomore.push({ id, ...course });
             } else if (id.startsWith('EENG-03') || id.startsWith('EENG-322') || 
                       id.startsWith('EENG-325') || id.startsWith('EENG-330') ||
                       id === 'COEG-0311' || id === 'COEG-0305' || id === 'EENG-0323' ||
-                      id === 'EENG-0360' || id === 'MATH-0307' || id === 'MATH-0461') {
+                      id === 'EENG-0360' || id === 'MATH-0461') {
               categories.junior.push({ id, ...course });
             } else {
               // Senior level courses (EENG-04xx, COEG-04xx, etc.)
