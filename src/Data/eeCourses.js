@@ -45,7 +45,7 @@ export const eeCourses = {
     name: 'Calculus III',
     credits: 4,
     prerequisites: ['MATH-0207', 'MATH-0208'],
-    description: 'Multivariable calculus including partial derivatives, multiple integrals, vector calculus, and applications to physical systems.',
+    description: 'NOTE: If choosing between this and EENG-0225 in sophomore spring, prioritize EENG-0225 (Spring-only). Multivariable calculus including partial derivatives, multiple integrals, vector calculus, and applications to physical systems.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -385,7 +385,7 @@ export const eeCourses = {
     name: 'Differential Equations & Linear Algebra',
     credits: 4,
     prerequisites: ['MATH-0208'],
-    description: 'Differential equations and linear algebra with engineering applications, including matrix methods, eigenvalues, and systems of linear differential equations.',
+    description: '⚠️ CRITICAL: Spring-only course required for Signals & Systems (Fall). Must take by sophomore spring or risk semester delay. Differential equations and linear algebra with engineering applications, including matrix methods, eigenvalues, and systems of linear differential equations.',
     category: 'core',
     semesters: ['Spring'] // ❌✅ Spring only
   },
