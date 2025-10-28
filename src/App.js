@@ -160,7 +160,7 @@ function AppContent() {
               categories.freshman.push({ id, ...course });
             } else if (id.startsWith('EENG-02') || id.startsWith('EENG-0260') || 
                       id.startsWith('EENG-221') || id.startsWith('EENG-260') ||
-                      id.startsWith('EENG-322') ||
+                      id.startsWith('EENG-322') || id === 'EENG-0322' ||
                       id === 'EENG-0210' || id === 'EENG-0225' || id === 'COEG-0300' || id === 'MENG-0237' ||
                       id === 'MATH-0209' || id === 'PHYS-311' || id === 'PHYS-314') {
               categories.sophomore.push({ id, ...course });
