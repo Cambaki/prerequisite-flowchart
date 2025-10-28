@@ -49,6 +49,13 @@ export const CourseNode = ({ course, status, onClick, showDetails }) => {
       <div className="text-sm font-medium mb-1">{course.name}</div>
       <div className="text-xs opacity-90">{course.credits} credits</div>
       
+      {/* Display semester availability */}
+      {course.semesters && course.semesters.length > 0 && (
+        <div className="text-xs mt-1 opacity-90">
+          <strong>Offered:</strong> {course.semesters.join(' • ')}
+        </div>
+      )}
+      
       {showDetails && (
         <div className="mt-2 pt-2 border-t border-white border-opacity-30 text-xs">
           {course.description && (
@@ -58,10 +65,10 @@ export const CourseNode = ({ course, status, onClick, showDetails }) => {
             </div>
           )}
 
-          {course.offered && (
+          {course.semesters && course.semesters.length > 0 && (
             <div className="mb-2">
-              <strong>Offered:</strong>
-              <div className="mt-1">{course.offered}</div>
+              <strong>Semesters Offered:</strong>
+              <div className="mt-1">{course.semesters.join(' • ')}</div>
             </div>
           )}
 
