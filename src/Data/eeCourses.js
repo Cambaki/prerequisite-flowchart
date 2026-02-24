@@ -320,6 +320,7 @@ export const eeCourses = {
   description: 'Study of basic electric circuits, including Ohm’s Law, Kirchhoff’s Laws, network theorems, transient and steady-state analysis of DC and AC circuits.',
 
   corequisite: 'EENG-221L',
+    category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
   },
   'EENG-221L': {
