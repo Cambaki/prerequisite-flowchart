@@ -21,6 +21,7 @@ function normalizeSections(courses) {
   }, {});
 
   Object.values(courses || {}).forEach((course) => {
+    if (!course || typeof course !== 'object') return;
     const category = course.category || 'other';
     const normalized = sections[category] ? category : 'other';
     sections[normalized].push(course);
@@ -93,7 +94,7 @@ export function CollegeBetaApp() {
   const sections = useMemo(() => normalizeSections(currentCourses), [currentCourses]);
 
   const stats = useMemo(() => {
-    const total = Object.keys(currentCourses).length;
+    const total = Object.values(currentCourses || {}).filter((course) => course && typeof course === 'object').length;
     const completed = completedCourses.length;
     const available = availableCourses.length;
     return {
@@ -109,6 +110,7 @@ export function CollegeBetaApp() {
     let totalCreditsInCatalog = 0;
 
     Object.entries(currentCourses).forEach(([courseId, course]) => {
+      if (!course || typeof course !== 'object') return;
       const counts = course.countForDegree !== false;
       const credits = Number(course.credits) || 0;
       if (counts) totalCreditsInCatalog += credits;
@@ -150,7 +152,7 @@ export function CollegeBetaApp() {
           College of Engineering Planner (Beta)
         </h1>
         <p className="text-gray-600">
-          Accessible beta version for engineering students. Currently available disciplines are Electrical (EE), Computer (CE), Aerospace (AE), Chemical (CH), and Mechanical (ME). Mechanical now includes a dedicated pathway, while Aerospace and Chemical remain in-progress.
+          Accessible beta version for engineering students. Currently available disciplines are Electrical (EE), Computer (CE), Mechanical (ME), Aerospace Science Engineering (AE), Chemical Engineering (CH), and Aviation Science (AV). Aerospace and Chemical are separate pathways; Aviation Science is separate and pending curriculum upload.
         </p>
       </header>
 
@@ -174,10 +176,10 @@ export function CollegeBetaApp() {
         <div className="mt-3 text-sm text-gray-700">
           <div><strong>Department:</strong> {programMeta.department}</div>
           <div>
-            <strong>Catalog status:</strong> {programMeta.availability === 'full' ? 'Full prerequisite map' : 'Beta shared-core map'}
+            <strong>Catalog status:</strong> {programMeta.availability === 'full' ? 'Full prerequisite map' : programMeta.availability === 'beta' ? 'Beta shared-core map' : 'Curriculum pending'}
           </div>
           <div>
-            <strong>In progress:</strong> Aerospace and Chemical full pathways are under development.
+            <strong>In progress:</strong> Aerospace and Chemical are separate pathways under build-out; Aviation Science is tracked separately pending official curriculum.
           </div>
         </div>
       </section>

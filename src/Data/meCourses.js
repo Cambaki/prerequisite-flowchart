@@ -19,7 +19,7 @@ const meSharedCourses = {
   'OREN-0101': ceCourses['OREN-0101'],
   'PE-1': ceCourses['PE-1'],
   'PE-2': ceCourses['PE-2'],
-  'MENG-0441': ceCourses['MENG-0441']
+  'EENG-0441': ceCourses['EENG-0441']
 };
 
 export const meCourses = {

@@ -61,6 +61,14 @@ export const collegePrograms = {
     availability: 'beta',
     requiredCredits: null,
     courses: sharedCoreCourses
+  },
+  AV: {
+    id: 'AV',
+    name: 'Aviation Science',
+    department: 'Aerospace Science Engineering',
+    availability: 'pending',
+    requiredCredits: null,
+    courses: {}
   }
 };
 
