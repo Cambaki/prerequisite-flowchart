@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, Component } from 'react';
 import { CourseNode } from './Components/CourseNode';
 import { ProgramSelector } from './Components/ProgramSelector';
+import { CollegeBetaApp } from './Components/CollegeBetaApp';
 import { eeCourses } from './Data/eeCourses';
 import { ceCourses } from './Data/ceCourses';
 import { getCourseStatus, getAvailableCourses } from './Utils/prerequisiteChecker';
@@ -55,7 +56,6 @@ function AppContent() {
   const [completedCourses, setCompletedCourses] = useState([]);
   const [showDetails, setShowDetails] = useState(true);
   const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
-  const [mathReadinessLevel, setMathReadinessLevel] = useState(null);
 
   // Debug logging
   useEffect(() => {
@@ -98,7 +98,6 @@ function AppContent() {
   };
 
   const handleMathReadiness = (level) => {
-    setMathReadinessLevel(level);
     setShowMathReadinessPopup(false);
     
     // Auto-complete prerequisites based on math readiness level
@@ -223,7 +222,7 @@ function AppContent() {
 
     const remaining = Math.max(0, requiredCredits - completedCredits);
     return { completedCredits, requiredCredits, availableCredits, remaining };
-  }, [currentCourses, completedCourses, selectedProgram]);
+  }, [currentCourses, completedCourses]);
 
   const resetProgress = () => {
     setCompletedCourses([]);
@@ -558,10 +557,37 @@ function AppContent() {
 
 // Main App component
 function App() {
+  const [isBetaMode, setIsBetaMode] = useState(() => window.location.hash === '#/beta');
+
+  useEffect(() => {
+    const onHashChange = () => {
+      setIsBetaMode(window.location.hash === '#/beta');
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-        <AppContent />
+        <div className="max-w-7xl mx-auto mb-4 flex flex-wrap gap-3">
+          <a
+            href="#/"
+            className={`px-4 py-2 rounded-lg text-sm font-semibold ${!isBetaMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}
+            aria-current={!isBetaMode ? 'page' : undefined}
+          >
+            Current ECE Version
+          </a>
+          <a
+            href="#/beta"
+            className={`px-4 py-2 rounded-lg text-sm font-semibold ${isBetaMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}
+            aria-current={isBetaMode ? 'page' : undefined}
+          >
+            College of Engineering Beta
+          </a>
+        </div>
+        {isBetaMode ? <CollegeBetaApp /> : <AppContent />}
       </div>
     </ErrorBoundary>
   );

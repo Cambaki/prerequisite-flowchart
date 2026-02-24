@@ -297,7 +297,7 @@ export const eeCourses = {
     id: 'CSCI-0229',
     name: 'Intro to C++ Programming',
     credits: 3,
-    prerequisites: ['EENG-0192'],
+    prerequisites: [],
     description: 'Introduction to C++: basic syntax, data types, control flow, functions, and introductory object-oriented programming concepts for engineering applications.',
     category: 'core',
     semesters: ['Fall', 'Spring']
