@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/prerequisite-flowchart/static/css/main.9503aab9.css",
-    "main.js": "/prerequisite-flowchart/static/js/main.76583d1c.js",
-    "index.html": "/prerequisite-flowchart/index.html",
-    "main.9503aab9.css.map": "/prerequisite-flowchart/static/css/main.9503aab9.css.map",
-    "main.76583d1c.js.map": "/prerequisite-flowchart/static/js/main.76583d1c.js.map"
+    "main.css": "./static/css/main.9503aab9.css",
+    "main.js": "./static/js/main.76583d1c.js",
+    "index.html": "./index.html",
+    "main.9503aab9.css.map": "./static/css/main.9503aab9.css.map",
+    "main.76583d1c.js.map": "./static/js/main.76583d1c.js.map"
   },
   "entrypoints": [
     "static/css/main.9503aab9.css",
