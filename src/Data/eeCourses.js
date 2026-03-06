@@ -17,7 +17,7 @@ export const eeCourses = {
     name: 'Precalculus Trigonometry',
     credits: 4,
     prerequisites: [],
-    description: 'Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
+    description: 'NOTE: May be skipped with department approval if brought up during advising. Trigonometry and analytic geometry fundamentals including trigonometric functions, identities, and applications for engineering.',
     category: 'foundation',
     semesters: ['Fall', 'Spring'],
     countForDegree: false
@@ -45,7 +45,7 @@ export const eeCourses = {
     name: 'Calculus III',
     credits: 4,
     prerequisites: ['MATH-0207', 'MATH-0208'],
-    description: 'Multivariable calculus including partial derivatives, multiple integrals, vector calculus, and applications to physical systems.',
+    description: 'NOTE: If choosing between this and EENG-0225 in sophomore spring, prioritize EENG-0225 (Spring-only). Multivariable calculus including partial derivatives, multiple integrals, vector calculus, and applications to physical systems.',
     category: 'core',
     semesters: ['Fall', 'Spring']
   },
@@ -290,9 +290,8 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['EENG-0192'],
     description: 'Introduction to Python programming for engineering applications. Covers syntax, control structures, functions, modules, and basic data structures.',
-    offered: 'All Terms, All Years',
     category: 'core',
-    semesters: ['Fall'] // ✅ Fall only
+    semesters: ['Fall'] // Fall only per official schedule
   },
   'CSCI-0229': {
     id: 'CSCI-0229',
@@ -319,7 +318,7 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['EENG-0192', 'MATH-0207'],
   description: 'Study of basic electric circuits, including Ohm’s Law, Kirchhoff’s Laws, network theorems, transient and steady-state analysis of DC and AC circuits.',
-    offered: 'All Terms, All Years',
+
   corequisite: 'EENG-221L',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
   },
@@ -330,7 +329,7 @@ export const eeCourses = {
     // Mirror Circuits I prerequisites (exclude lab IDs to avoid circular refs)
     prerequisites: ['EENG-0192', 'MATH-0207'],
     description: 'Laboratory experiments to supplement EENG-0221. Includes practical circuit construction, measurement, and analysis.',
-    offered: 'All Terms, All Years',
+
     corequisite: 'EENG-0221',
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
@@ -341,10 +340,9 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['EENG-0192'],
     description: 'Fundamentals of digital logic design, including Boolean algebra, logic gates, combinational and sequential circuits.',
-    offered: 'All Terms, All Years',
     corequisite: 'EENG-260L',
     category: 'core',
-    semesters: ['Spring'] // Spring only
+    semesters: ['Spring'] // Spring only per official schedule
   },
   'EENG-0322': {
     id: 'EENG-0322',
@@ -353,7 +351,7 @@ export const eeCourses = {
     prerequisites: ['EENG-0221', 'EENG-221L', 'MATH-0208'],
     corequisite: 'EENG-322L',
     description: 'Advanced circuit analysis including AC steady-state, resonance, power, polyphase systems, and introduction to network functions.',
-    offered: 'All Terms, All Years',
+
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
   },
@@ -364,7 +362,7 @@ export const eeCourses = {
     // Mirror Circuits II prerequisites (exclude other lab IDs)
     prerequisites: ['EENG-0221', 'MATH-0208'],
     description: 'Laboratory experiments to accompany EENG-0322. Includes circuit construction, measurement, and analysis.',
-    offered: 'All Terms, All Years',
+
     corequisite: 'EENG-0322',
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
@@ -376,10 +374,9 @@ export const eeCourses = {
     // Mirror Intro to Logic Circuits prerequisites
     prerequisites: ['EENG-0192'],
     description: 'Laboratory and design experiences accompanying EENG-0260. Practical implementation of logic circuits and troubleshooting.',
-    offered: 'All Terms, All Years',
     corequisite: 'EENG-0260',
     category: 'core',
-    semesters: ['Spring'] // ❌✅ Spring only
+    semesters: ['Spring'] // Spring only per official schedule
   },
 
   // ==================== MATH & THEORY ====================
@@ -388,7 +385,7 @@ export const eeCourses = {
     name: 'Differential Equations & Linear Algebra',
     credits: 4,
     prerequisites: ['MATH-0208'],
-    description: 'Differential equations and linear algebra with engineering applications, including matrix methods, eigenvalues, and systems of linear differential equations.',
+    description: '⚠️ CRITICAL: Spring-only course required for Signals & Systems (Fall). Must take by sophomore spring or risk semester delay. Differential equations and linear algebra with engineering applications, including matrix methods, eigenvalues, and systems of linear differential equations.',
     category: 'core',
     semesters: ['Spring'] // ❌✅ Spring only
   },
@@ -400,9 +397,8 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['EENG-0322', 'EENG-322L', 'EENG-0225'],
     description: 'Analysis of continuous and discrete-time signals and systems, Fourier and Laplace transforms, convolution, stability, and frequency response.',
-    offered: 'All Terms, All Years',
     category: 'core',
-    semesters: ['Fall'] // ✅ Fall only
+    semesters: ['Fall'] // Fall only per official schedule
   },
 
   // ==================== ELECTRONICS ====================
@@ -413,7 +409,7 @@ export const eeCourses = {
     prerequisites: ['EENG-0322', 'EENG-322L'],
     corequisite: 'EENG-0325L',
     description: 'Introduction to semiconductor devices, diode and transistor circuits, amplifiers, and basic analog circuit design.',
-    offered: 'All Terms, All Years',
+
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both (EE uses 0330)
   },
@@ -424,7 +420,7 @@ export const eeCourses = {
     // Mirror Electronics I prerequisites (exclude lab IDs)
     prerequisites: ['EENG-0322', 'EENG-322L'],
     description: 'Experimental study of electronic circuits, device characteristics, amplifiers, and switching applications.',
-    offered: 'All Terms, All Years',
+
     corequisite: 'EENG-0325',
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
@@ -437,7 +433,7 @@ export const eeCourses = {
     prerequisites: ['EENG-0325','EENG-0325L'],
     corequisite: 'EENG-0330L',
     description: 'Continuation of Electronics I; advanced transistor circuits, operational amplifiers, analog signal processing.',
-    offered: 'All Terms, All Years',
+
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
   },
@@ -448,7 +444,7 @@ export const eeCourses = {
     // Mirror Electronics II prerequisites (exclude lab IDs)
     prerequisites: ['EENG-0325'],
     description: 'Laboratory for EENG-0330. Conventional and experimental study of electronic circuit design and analysis.',
-    offered: 'All Terms, All Years',
+
     corequisite: 'EENG-0330',
     category: 'core',
     semesters: ['Fall', 'Spring'] // ✅✅ Both
@@ -461,9 +457,8 @@ export const eeCourses = {
     credits: 3,
     prerequisites: ['EENG-0260', 'CSCI-0229'],
     description: 'Study of microprocessor architecture, programming, interfacing, and applications in embedded systems.',
-    offered: 'All Terms, All Years',
     category: 'core',
-    semesters: ['Fall'] // ✅ Fall only
+    semesters: ['Fall'] // Fall only per official schedule
   },
 
   // ==================== ELECTROMAGNETICS ====================
