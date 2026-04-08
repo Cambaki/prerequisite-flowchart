@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect, Component } from 'react';
+import React, { useState, useMemo, useEffect, useRef, Component } from 'react';
 import { CourseNode } from './Components/CourseNode';
 import { ProgramSelector } from './Components/ProgramSelector';
 import { eeCourses } from './Data/eeCourses';
 import { ceCourses } from './Data/ceCourses';
-import { getCourseStatus, getAvailableCourses } from './Utils/prerequisiteChecker';
+import { getCourseStatus, getAvailableCourses, checkPrerequisites } from './Utils/prerequisiteChecker';
 import './App.css';
 
 // Error Boundary Component
@@ -56,6 +56,9 @@ function AppContent() {
   const [showDetails, setShowDetails] = useState(true);
   const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
   const [mathReadinessLevel, setMathReadinessLevel] = useState(null);
+  const [guidanceMessage, setGuidanceMessage] = useState(null);
+  const prevAvailableRef = useRef([]);
+  const prevCompletedRef = useRef([]);
 
   // Debug logging
   useEffect(() => {
@@ -78,7 +81,22 @@ function AppContent() {
       return;
     }
 
-    if (status !== 'available') return; // locked/blocked - do nothing
+    if (status !== 'available') {
+      const { missing } = checkPrerequisites(courseId, completedCourses, currentCourses);
+      const shortMissing = missing.slice(0, 3);
+      const missingNames = shortMissing
+        .map(id => currentCourses[id]?.name || id)
+        .join(', ');
+
+      setGuidanceMessage({
+        type: 'warning',
+        title: `You are not ready for ${courseId} yet`,
+        body: missing.length > 0
+          ? `Complete these prerequisites first: ${missingNames}${missing.length > 3 ? ', ...' : ''}.`
+          : 'This course is currently blocked. Complete earlier requirements first.'
+      });
+      return;
+    }
 
     // Mark course as completed and also mark corequisites (same-semester labs)
     const course = currentCourses[courseId];
@@ -95,6 +113,9 @@ function AppContent() {
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
     setCompletedCourses([]);
+    setGuidanceMessage(null);
+    prevAvailableRef.current = [];
+    prevCompletedRef.current = [];
   };
 
   const handleMathReadiness = (level) => {
@@ -118,6 +139,61 @@ function AppContent() {
   const availableCourses = useMemo(() => {
     return getAvailableCourses(completedCourses, currentCourses);
   }, [completedCourses, currentCourses]);
+
+  const graduationStatus = useMemo(() => {
+    const degreeCourseEntries = Object.entries(currentCourses).filter(([, c]) => c.countForDegree !== false);
+
+    if (selectedProgram === 'CE') {
+      const requiredNonElective = degreeCourseEntries.filter(([, c]) => c.category !== 'elective');
+      const remainingNonElective = requiredNonElective.filter(([id]) => !completedCourses.includes(id)).length;
+
+      const electiveCompletedCredits = degreeCourseEntries
+        .filter(([, c]) => c.category === 'elective')
+        .reduce((sum, [id, c]) => sum + (completedCourses.includes(id) ? (Number(c.credits) || 0) : 0), 0);
+
+      const remainingElectiveCredits = Math.max(0, 6 - electiveCompletedCredits);
+
+      return {
+        isComplete: remainingNonElective === 0 && remainingElectiveCredits === 0,
+        remainingNonElective,
+        remainingElectiveCredits
+      };
+    }
+
+    const remainingRequiredCourses = degreeCourseEntries.filter(([id]) => !completedCourses.includes(id)).length;
+    return {
+      isComplete: remainingRequiredCourses === 0,
+      remainingRequiredCourses
+    };
+  }, [currentCourses, selectedProgram, completedCourses]);
+
+  useEffect(() => {
+    const prevAvailable = prevAvailableRef.current;
+    const prevCompleted = prevCompletedRef.current;
+
+    const newlyCompleted = completedCourses.filter(id => !prevCompleted.includes(id));
+    const newlyUnlocked = availableCourses.filter(id => !prevAvailable.includes(id));
+
+    if (newlyCompleted.length > 0 && !graduationStatus.isComplete) {
+      if (newlyUnlocked.length > 0) {
+        const unlockedList = newlyUnlocked.slice(0, 4).map(id => `${id} (${currentCourses[id]?.name || 'Newly available'})`).join(', ');
+        setGuidanceMessage({
+          type: 'success',
+          title: 'Nice work. You unlocked new course options.',
+          body: `You can now take: ${unlockedList}${newlyUnlocked.length > 4 ? ', ...' : ''}.`
+        });
+      } else {
+        setGuidanceMessage({
+          type: 'info',
+          title: 'Progress saved.',
+          body: 'Prerequisites were updated. Keep completing available courses to unlock the next set.'
+        });
+      }
+    }
+
+    prevAvailableRef.current = availableCourses;
+    prevCompletedRef.current = completedCourses;
+  }, [availableCourses, completedCourses, currentCourses, graduationStatus.isComplete]);
 
   const categorizedCourses = useMemo(() => {
     try {
@@ -323,6 +399,50 @@ function AppContent() {
         selectedProgram={selectedProgram}
         onProgramChange={handleProgramChange}
       />
+
+      {graduationStatus.isComplete && (
+        <div
+          className="mb-6 p-4 rounded-lg"
+          style={{ backgroundColor: '#dcfce7', border: '1px solid #16a34a', textAlign: 'left' }}
+        >
+          <h3 className="text-lg font-bold" style={{ color: '#166534' }}>
+            Graduation Requirement Complete
+          </h3>
+          <p className="text-sm" style={{ color: '#166534' }}>
+            You have completed all required coursework for the {selectedProgram} program.
+          </p>
+        </div>
+      )}
+
+      {guidanceMessage && !graduationStatus.isComplete && (
+        <div
+          className="mb-6 p-4 rounded-lg"
+          style={{
+            backgroundColor:
+              guidanceMessage.type === 'warning' ? '#fee2e2' :
+              guidanceMessage.type === 'success' ? '#fef9c3' : '#dbeafe',
+            border:
+              guidanceMessage.type === 'warning' ? '1px solid #dc2626' :
+              guidanceMessage.type === 'success' ? '1px solid #ca8a04' : '1px solid #2563eb',
+            textAlign: 'left'
+          }}
+        >
+          <div className="text-sm font-bold" style={{
+            color:
+              guidanceMessage.type === 'warning' ? '#991b1b' :
+              guidanceMessage.type === 'success' ? '#854d0e' : '#1e3a8a'
+          }}>
+            {guidanceMessage.title}
+          </div>
+          <div className="text-sm" style={{
+            color:
+              guidanceMessage.type === 'warning' ? '#991b1b' :
+              guidanceMessage.type === 'success' ? '#854d0e' : '#1e3a8a'
+          }}>
+            {guidanceMessage.body}
+          </div>
+        </div>
+      )}
 
       {/* Statistics Dashboard */}
       <div className="grid grid-cols-4 gap-4 mb-6">
