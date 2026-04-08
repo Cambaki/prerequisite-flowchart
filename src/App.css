@@ -151,8 +151,7 @@
 }
 
 .bg-yellow-400 {
-  /* Also map to Old Gold for legacy utility usage */
-  background-color: #C99700;
+  background-color: #facc15;
 }
 
 .bg-red-600 {
@@ -189,7 +188,7 @@
 }
 
 .hover\:bg-yellow-500:hover {
-  background-color: #b88600;
+  background-color: #eab308;
 }
 
 .hover\:bg-gray-300:hover {

@@ -208,13 +208,25 @@ function AppContent() {
   const creditTotals = useMemo(() => {
     let completedCredits = 0;
     let availableCredits = 0;
+    let completedElectiveCredits = 0;
     Object.entries(currentCourses).forEach(([id, c]) => {
       // Courses marked with countForDegree: false do not contribute to graduation credit totals
       const counts = c.countForDegree !== false;
       const cr = Number(c.credits) || 0;
       if (counts) availableCredits += cr;
-      if (counts && completedCourses.includes(id)) completedCredits += cr;
+      if (counts && completedCourses.includes(id)) {
+        if (selectedProgram === 'CE' && c.category === 'elective') {
+          completedElectiveCredits += cr;
+        } else {
+          completedCredits += cr;
+        }
+      }
     });
+
+    // CE requires 6 elective credits (not a fixed number of elective courses).
+    if (selectedProgram === 'CE') {
+      completedCredits += Math.min(completedElectiveCredits, 6);
+    }
 
     // Default: requiredCredits equals availableCredits (all courses required)
     let requiredCredits = availableCredits;
@@ -326,7 +338,7 @@ function AppContent() {
           <div className="text-2xl font-bold">{stats.available}</div>
           <div className="text-sm">Available</div>
         </div>
-        <div className="bg-gray-400 text-white p-4 rounded-lg shadow">
+        <div className="bg-red-600 text-white p-4 rounded-lg shadow">
           <div className="text-2xl font-bold">{stats.blocked}</div>
           <div className="text-sm">Blocked</div>
         </div>
@@ -487,10 +499,10 @@ function AppContent() {
         {categorizedCourses.elective.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold text-purple-800 mb-4">
-              🎯 Technical Electives (Choose 3)
+              🎯 Technical Electives (Need 6 Credits)
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Machine Learning, AI, Cybersecurity, Software Engineering, Mobile Security
+              Complete any 6 elective credits (typically 2 courses): Machine Learning, AI, Cybersecurity, Software Engineering, Mobile Security
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {categorizedCourses.elective.map(course => (
@@ -541,7 +553,7 @@ function AppContent() {
             <div className="text-sm text-gray-600">Ready to Take</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-600">{stats.blocked}</div>
+            <div className="text-3xl font-bold text-red-600">{stats.blocked}</div>
             <div className="text-sm text-gray-600">Still Blocked</div>
           </div>
           <div>

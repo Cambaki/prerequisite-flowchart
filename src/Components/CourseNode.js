@@ -7,14 +7,13 @@ export const CourseNode = ({ course, status, onClick, showDetails }) => {
   const getStatusColor = () => {
     switch (status) {
       case 'completed':
-        // Tuskegee crimson when completed
-        return 'bg-[#9B1B30] hover:bg-[#881624]';
+        return 'bg-green-500 hover:bg-green-600';
       case 'available':
         return 'bg-yellow-400 hover:bg-yellow-500';
       case 'blocked':
-        return 'bg-gray-400 cursor-not-allowed';
+        return 'bg-red-600 cursor-not-allowed';
       default:
-        return 'bg-gray-300';
+        return 'bg-red-600';
     }
   };
 
