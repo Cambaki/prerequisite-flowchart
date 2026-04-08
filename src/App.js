@@ -55,7 +55,6 @@ function AppContent() {
   const [completedCourses, setCompletedCourses] = useState([]);
   const [showDetails, setShowDetails] = useState(true);
   const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
-  const [mathReadinessLevel, setMathReadinessLevel] = useState(null);
   const [guidanceMessage, setGuidanceMessage] = useState(null);
   const prevAvailableRef = useRef([]);
   const prevCompletedRef = useRef([]);
@@ -119,7 +118,6 @@ function AppContent() {
   };
 
   const handleMathReadiness = (level) => {
-    setMathReadinessLevel(level);
     setShowMathReadinessPopup(false);
     
     // Auto-complete prerequisites based on math readiness level
