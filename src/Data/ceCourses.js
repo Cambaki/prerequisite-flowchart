@@ -54,7 +54,7 @@ export const ceCourses = {
   'EENG-0325': { id: 'EENG-0325', name: 'Electronics I', credits: 3, prerequisites: ['EENG-0322','EENG-322L'], corequisite: 'EENG-325L', description: 'Introduction to semiconductor devices, diode and transistor circuits, amplifiers, and basic analog circuit design.', category: 'core', semesters: ['Fall','Spring'] },
   'EENG-325L': { id: 'EENG-325L', name: 'Electronics I Lab', credits: 1, prerequisites: ['EENG-0322','EENG-322L'], corequisite: 'EENG-0325', description: 'Experimental study of electronic circuits, device characteristics, amplifiers, and switching applications.', category: 'core', semesters: ['Fall','Spring'] },
   'EENG-0360': { id: 'EENG-0360', name: 'Microprocessors', credits: 3, prerequisites: ['EENG-0260','CSCI-0229'], description: 'Study of microprocessor architecture, programming, interfacing, and applications in embedded systems.', category: 'core', semesters: ['Fall'] },
-  'EENG-0425': { id: 'EENG-0425', name: 'Computer Network Design', credits: 3, prerequisites: ['EENG-0323'], description: 'Design and analysis of computer networks, including protocols, architectures, routing, and performance considerations.', category: 'core', semesters: ['Fall','Spring'] },
+  'EENG-0425': { id: 'EENG-0425', name: 'Computer Network Design', credits: 3, prerequisites: ['EENG-0360'], description: 'Design and analysis of computer networks, including protocols, architectures, routing, and performance considerations.', category: 'core', semesters: ['Fall','Spring'] },
 
   // ==================== COEG / CE SPECIALIZED ====================
   'COEG-0300': { id: 'COEG-0300', name: 'Discrete Mathematics for Engineers', credits: 3, prerequisites: ['MATH-0207','EENG-0210'], description: 'Fundamentals of discrete mathematics for computer engineering: logic, sets, proof techniques, relations, functions, and basic graph theory.', category: 'core', semesters: ['Spring'] },
@@ -86,3 +86,4 @@ export const ceCourses = {
   // ==================== SPECIAL TOPICS ====================
   'COEG-0493': { id: 'COEG-0493', name: 'Special Topics in Computer Engineering', credits: 3, prerequisites: [], description: 'Advanced topics in computer engineering not covered in regular courses. Content varies by semester based on current technological developments and student interest. Requires approval of instructor and department head.', category: 'elective', semesters: ['Fall','Spring'] }
 };
+
