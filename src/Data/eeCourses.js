@@ -203,7 +203,7 @@ export const eeCourses = {
   },
   'SOC-SCI-1': {
     id: 'SOC-SCI-1',
-    name: 'Social Science I (History/Psychology)',
+    name: 'Social Science I (History-1)',
     credits: 3,
     prerequisites: [],
     category: 'gen-ed',
@@ -212,7 +212,7 @@ export const eeCourses = {
   },
   'SOC-SCI-2': {
     id: 'SOC-SCI-2',
-    name: 'Social Science II',
+    name: 'Social Science II (History-2)',
     credits: 3,
     prerequisites: [],
     category: 'gen-ed',
@@ -221,7 +221,7 @@ export const eeCourses = {
   },
   'SOC-SCI-3': {
     id: 'SOC-SCI-3',
-    name: 'Social Science III',
+    name: 'Social Science III (Poli_Sci, Sociology, etc.)',
     credits: 3,
     prerequisites: [],
     category: 'gen-ed',
@@ -230,11 +230,11 @@ export const eeCourses = {
   },
   'SOC-SCI-4': {
     id: 'SOC-SCI-4',
-    name: 'Social Science IV',
+    name: 'Social Science IV (Poli_Sci, Sociology, etc.)',
     credits: 3,
     prerequisites: [],
     category: 'gen-ed',
-    description: 'Study of political systems, governmental structures, political behavior, and public policy processes.',
+    description: 'CourseS in political science covering government systems, political behavior, and policy analysis.',
     semesters: ['Fall', 'Spring']
   },
   'PE-1': {
@@ -271,6 +271,15 @@ export const eeCourses = {
     prerequisites: [],
     description: 'Principles of engineering economics: time value of money, cost-benefit analysis, interest calculations, and decision-making for projects.',
     category: 'gen-ed',
+    semesters: ['Fall', 'Spring']
+  },
+  'COEG-0305': {
+    id: 'COEG-0305',
+      name: 'Fundamentals of Cybersecurity',
+    credits: 5,
+    prerequisites: [],
+    description: 'Required COEG course for the Electrical Engineering curriculum.',
+    category: 'core',
     semesters: ['Fall', 'Spring']
   },
 

@@ -304,8 +304,8 @@ function AppContent() {
 
     // Default: requiredCredits equals availableCredits (all courses required)
     let requiredCredits = availableCredits;
-    // Graduation requirement: 129 credits for both CE and EE programs
-    requiredCredits = 129;
+    // Graduation requirement: EE=130, CE=129
+    requiredCredits = selectedProgram === 'EE' ? 130 : 129;
 
     const remaining = Math.max(0, requiredCredits - completedCredits);
     return { completedCredits, requiredCredits, availableCredits, remaining };
