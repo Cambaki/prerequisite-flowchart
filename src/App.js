@@ -6,6 +6,19 @@ import { ceCourses } from './Data/ceCourses';
 import { getCourseStatus, getAvailableCourses, checkPrerequisites } from './Utils/prerequisiteChecker';
 import './App.css';
 
+const PROGRESS_STORAGE_KEY = 'prerequisite-flowchart-progress-v1';
+
+const readStoredProgress = () => {
+  try {
+    const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
 // Error Boundary Component
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -59,6 +72,12 @@ function AppContent() {
   const prevAvailableRef = useRef([]);
   const prevCompletedRef = useRef([]);
 
+  const getSavedCoursesForProgram = (program) => {
+    const stored = readStoredProgress();
+    const saved = stored.completedByProgram?.[program];
+    return Array.isArray(saved) ? saved : [];
+  };
+
   // Debug logging
   useEffect(() => {
     console.log('Course data available:', {
@@ -66,6 +85,47 @@ function AppContent() {
       ceCourses: typeof ceCourses !== 'undefined' ? Object.keys(ceCourses || {}).length : 'undefined'
     });
   }, []);
+
+  useEffect(() => {
+    const stored = readStoredProgress();
+    const initialProgram = stored.selectedProgram === 'CE' ? 'CE' : 'EE';
+    const savedCourses = Array.isArray(stored.completedByProgram?.[initialProgram])
+      ? stored.completedByProgram[initialProgram]
+      : [];
+
+    setSelectedProgram(initialProgram);
+    setCompletedCourses(savedCourses);
+
+    if (typeof stored.showDetails === 'boolean') {
+      setShowDetails(stored.showDetails);
+    }
+
+    if (stored.hasInitialized === true) {
+      setShowMathReadinessPopup(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const stored = readStoredProgress();
+    const completedByProgram = {
+      EE: [],
+      CE: [],
+      ...(stored.completedByProgram || {})
+    };
+
+    completedByProgram[selectedProgram] = completedCourses;
+
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        ...stored,
+        selectedProgram,
+        completedByProgram,
+        showDetails,
+        hasInitialized: !showMathReadinessPopup
+      })
+    );
+  }, [selectedProgram, completedCourses, showDetails, showMathReadinessPopup]);
 
   const currentCourses = useMemo(() => {
     return selectedProgram === 'EE' ? eeCourses : ceCourses;
@@ -111,7 +171,7 @@ function AppContent() {
 
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
-    setCompletedCourses([]);
+    setCompletedCourses(getSavedCoursesForProgram(program));
     setGuidanceMessage(null);
     prevAvailableRef.current = [];
     prevCompletedRef.current = [];
@@ -348,9 +408,16 @@ function AppContent() {
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h3 className="font-semibold text-blue-800 mb-2">Your Program:</h3>
               <div className="text-sm text-blue-700">
-                <strong>{selectedProgram === 'EE' ? 'Electrical Engineering (EE)' : 'Computer Engineering (CE)'}</strong>
-                <div className="text-xs mt-1">
-                  You can change this using the program selector above if needed.
+                <select
+                  value={selectedProgram}
+                  onChange={(e) => handleProgramChange(e.target.value)}
+                  className="w-full p-2 bg-white border border-blue-300 rounded"
+                >
+                  <option value="EE">Electrical Engineering (EE)</option>
+                  <option value="CE">Computer Engineering (CE)</option>
+                </select>
+                <div className="text-xs mt-2">
+                  Your progress is saved separately for each program.
                 </div>
               </div>
             </div>

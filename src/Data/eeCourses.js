@@ -275,12 +275,12 @@ export const eeCourses = {
   },
   'COEG-0305': {
     id: 'COEG-0305',
-      name: 'Fundamentals of Cybersecurity',
-    credits: 5,
-    prerequisites: [],
-    description: 'Required COEG course for the Electrical Engineering curriculum.',
+    name: 'COEG 305 Fundamentals of Cybersecurity',
+    credits: 3,
+    prerequisites: ['EENG-0210'],
+    description: 'Required cybersecurity fundamentals course for the Electrical Engineering curriculum.',
     category: 'core',
-    semesters: ['Fall', 'Spring']
+    semesters: ['Spring']
   },
 
   // ==================== FRESHMAN ENGINEERING ====================
