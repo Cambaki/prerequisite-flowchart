@@ -152,19 +152,20 @@ File: `src/Utils/prerequisiteChecker.js`
 ### 6.1 Core functions
 
 - `collectMissingPrereqs(courseId, completed, allCourses, visited)`
+
   - Recursively traverses prerequisites.
   - Builds full missing prerequisite chain.
   - Uses `visited` set to avoid infinite loops on bad graphs.
-
 - `checkPrerequisites(courseId, completed, allCourses)`
+
   - Returns whether course can be taken.
   - Normalizes `corequisite` to array.
   - Corequisites are not blocking in current design.
-
 - `getCourseStatus(courseId, completed, allCourses)`
-  - Returns `'completed' | 'available' | 'blocked'`.
 
+  - Returns `'completed' | 'available' | 'blocked'`.
 - `getAvailableCourses(completed, allCourses)`
+
   - Returns all courses that can currently be taken.
 
 ### 6.2 Current policy encoded in logic
@@ -379,20 +380,18 @@ Include date, reason, files touched, policy source.
 ## 14) Known quirks and technical debt to track
 
 1. Two ErrorBoundaries exist:
+
    - global one in `src/ErrorBoundary.js`
    - local class inside `App.js`
-   This is redundant and could be simplified.
-
+     This is redundant and could be simplified.
 2. `src/App.js.tmp` exists and appears to be stale/alternate code.
    It is not the runtime entry, but can confuse future maintainers.
-
 3. Styling is mixed:
+
    - Tailwind setup exists
    - many Tailwind-like utility classes are manually defined in `App.css`
-
 4. Course categorization in UI relies partly on hardcoded ID patterns.
    Future IDs may need updates to categorization logic.
-
 5. Workspace has duplicate project-looking directories at top level and nested level.
    Ensure edits happen in active nested project path.
 

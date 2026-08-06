@@ -19,6 +19,65 @@ const readStoredProgress = () => {
   }
 };
 
+const parseCsvLine = (line) => {
+  const cells = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === ',' && !inQuotes) {
+      cells.push(current);
+      current = '';
+      continue;
+    }
+
+    current += ch;
+  }
+
+  cells.push(current);
+  return cells;
+};
+
+const parseCsv = (csvText) => {
+  const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  return lines.map(parseCsvLine);
+};
+
+const csvEscape = (value) => {
+  const raw = value == null ? '' : String(value);
+  if (raw.includes('"') || raw.includes(',') || raw.includes('\n')) {
+    return `"${raw.replace(/"/g, '""')}"`;
+  }
+  return raw;
+};
+
+const toCsv = (rows) => rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+
+const normalizeCourseCode = (value) => {
+  if (!value) return '';
+  return String(value)
+    .toUpperCase()
+    .replace(/\./g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\s*-\s*/g, '-')
+    .replace(/^PHYS-0?(\d{3})$/, 'PHYS-$1')
+    .replace(/^EENG-(\d{3})L$/, 'EENG-$1L')
+    .replace(/^([A-Z]+)\s(\d+)/, '$1-$2');
+};
+
 // Error Boundary Component
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -69,6 +128,11 @@ function AppContent() {
   const [showDetails, setShowDetails] = useState(true);
   const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
   const [guidanceMessage, setGuidanceMessage] = useState(null);
+  const [provisionalTemplateRows, setProvisionalTemplateRows] = useState([]);
+  const [provisionalTemplateName, setProvisionalTemplateName] = useState('');
+  const [showSavePopup, setShowSavePopup] = useState(false);
+  const [exportStudentName, setExportStudentName] = useState('');
+  const [provisionalError, setProvisionalError] = useState(null);
   const prevAvailableRef = useRef([]);
   const prevCompletedRef = useRef([]);
 
@@ -131,6 +195,19 @@ function AppContent() {
     return selectedProgram === 'EE' ? eeCourses : ceCourses;
   }, [selectedProgram]);
 
+  const courseLookup = useMemo(() => {
+    const lookup = new Map();
+
+    Object.keys(currentCourses).forEach((id) => {
+      const normalized = normalizeCourseCode(id);
+      if (normalized) lookup.set(normalized, id);
+      lookup.set(normalized.replace(/-/g, ''), id);
+      lookup.set(normalized.replace(/-/g, ' '), id);
+    });
+
+    return lookup;
+  }, [currentCourses]);
+
   const handleCourseClick = (courseId) => {
     const status = getCourseStatus(courseId, completedCourses, currentCourses);
 
@@ -172,6 +249,8 @@ function AppContent() {
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
     setCompletedCourses(getSavedCoursesForProgram(program));
+    // Program switching should not force the math-readiness modal to reopen.
+    setShowMathReadinessPopup(false);
     setGuidanceMessage(null);
     prevAvailableRef.current = [];
     prevCompletedRef.current = [];
@@ -371,6 +450,139 @@ function AppContent() {
     return { completedCredits, requiredCredits, availableCredits, remaining };
   }, [currentCourses, completedCourses, selectedProgram]);
 
+  const provisionalPreview = useMemo(() => {
+    if (!Array.isArray(provisionalTemplateRows) || provisionalTemplateRows.length === 0) {
+      return [];
+    }
+
+    const preview = [];
+    const seen = new Set();
+
+    provisionalTemplateRows.forEach((row) => {
+      [0, 9].forEach((startIdx) => {
+        const rawCode = row[startIdx];
+        const normalized = normalizeCourseCode(rawCode);
+        if (!normalized) return;
+
+        const mappedId = courseLookup.get(normalized) || courseLookup.get(normalized.replace(/-/g, ''));
+        if (!mappedId || seen.has(`${startIdx}:${mappedId}`)) return;
+
+        seen.add(`${startIdx}:${mappedId}`);
+        preview.push({
+          csvCode: rawCode,
+          id: mappedId,
+          name: currentCourses[mappedId]?.name || '',
+          status: getCourseStatus(mappedId, completedCourses, currentCourses)
+        });
+      });
+    });
+
+    return preview;
+  }, [provisionalTemplateRows, courseLookup, currentCourses, completedCourses]);
+
+  const statusLabel = (status) => {
+    if (status === 'completed') return 'COMPLETED';
+    if (status === 'available') return 'READY TO TAKE';
+    return 'NOT READY';
+  };
+
+  const buildProvisionalExportRows = (studentName) => {
+    const rows = provisionalTemplateRows.map((row) => [...row]);
+
+    rows.forEach((row) => {
+      [0, 9].forEach((startIdx, statusOffset) => {
+        const rawCode = row[startIdx];
+        const normalized = normalizeCourseCode(rawCode);
+        if (!normalized) return;
+
+        const mappedId = courseLookup.get(normalized) || courseLookup.get(normalized.replace(/-/g, ''));
+        if (!mappedId) return;
+
+        const status = getCourseStatus(mappedId, completedCourses, currentCourses);
+        const credits = Number(currentCourses[mappedId]?.credits) || 0;
+
+        const earnedCreditsIndex = startIdx + 3;
+        if (status === 'completed') {
+          row[earnedCreditsIndex] = String(credits);
+        } else if (!row[earnedCreditsIndex] || Number(row[earnedCreditsIndex]) === 0) {
+          row[earnedCreditsIndex] = '0';
+        }
+
+        const statusColumnIndex = 20 + statusOffset;
+        row[statusColumnIndex] = statusLabel(status);
+      });
+
+      for (let i = row.length; i <= 21; i += 1) {
+        row[i] = row[i] || '';
+      }
+
+      const nameCellIndex = row.findIndex((cell) => String(cell || '').trim().toUpperCase().startsWith('ST. NAME:'));
+      if (nameCellIndex >= 0 && studentName) {
+        row[nameCellIndex + 1] = studentName;
+      }
+    });
+
+    const hasHeader = rows.some((row) => row[20] === 'Status (Left Section)' || row[21] === 'Status (Right Section)');
+    if (!hasHeader && rows.length > 5) {
+      rows[5][20] = 'Status (Left Section)';
+      rows[5][21] = 'Status (Right Section)';
+    }
+
+    const summaryStartRow = rows.length + 1;
+    rows.push(['']);
+    rows.push(['Auto Summary', 'Metric', 'Value']);
+    rows.push(['', 'Total Completed Credits', '=SUMPRODUCT((U:U="COMPLETED")*C:C)+SUMPRODUCT((V:V="COMPLETED")*L:L)']);
+    rows.push(['', 'Required Credits', String(creditTotals.requiredCredits)]);
+    rows.push(['', 'Remaining Credits', `=MAX(0,C${summaryStartRow + 3}-C${summaryStartRow + 2})`]);
+
+    return rows;
+  };
+
+  const handleProvisionalFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = parseCsv(text);
+      setProvisionalTemplateRows(parsed);
+      setProvisionalTemplateName(file.name);
+      setProvisionalError(null);
+    } catch (error) {
+      setProvisionalError('Could not read that CSV file. Please upload a valid provisional sheet CSV.');
+      console.error('Provisional upload failed:', error);
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const saveProvisionalSheet = () => {
+    const cleanName = exportStudentName.trim();
+    if (!cleanName) {
+      setProvisionalError('Please enter your name before saving the provisional sheet.');
+      return;
+    }
+
+    const exportRows = buildProvisionalExportRows(cleanName);
+    const csvString = toCsv(exportRows);
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const programTag = selectedProgram === 'EE' ? 'Electrical-Engineering' : 'Computer-Engineering';
+    const safeName = cleanName.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '');
+
+    link.href = url;
+    link.download = `${safeName || 'student'}-Provisional-${programTag}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setShowSavePopup(false);
+    setProvisionalError(null);
+  };
+
   const resetProgress = () => {
     setCompletedCourses([]);
   };
@@ -562,6 +774,89 @@ function AppContent() {
         </button>
       </div>
 
+      <div className="mb-8 p-6 bg-white rounded-lg shadow">
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Provisional Sheet Generator</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Upload your provisional CSV template, then save a new sheet from your current selections.
+          Completed courses are gray, ready courses are green, and not-ready courses are red.
+        </p>
+
+        <div className="flex flex-wrap gap-4 items-center mb-4">
+          <label className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-all">
+            Import Provisional CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleProvisionalFileUpload}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            onClick={() => {
+              setExportStudentName('');
+              setShowSavePopup(true);
+            }}
+            disabled={provisionalTemplateRows.length === 0}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            Save Generated Provisional CSV
+          </button>
+
+          {provisionalTemplateName && (
+            <div className="text-sm text-gray-700">Loaded template: {provisionalTemplateName}</div>
+          )}
+        </div>
+
+        {provisionalError && (
+          <div className="mb-4 p-3 rounded bg-red-50 text-red-800 border border-red-200 text-sm">
+            {provisionalError}
+          </div>
+        )}
+
+        {provisionalPreview.length > 0 && (
+          <div>
+            <div className="flex gap-3 mb-3 text-xs">
+              <span className="px-2 py-1 rounded bg-gray-400 text-white">COMPLETED (gray)</span>
+              <span className="px-2 py-1 rounded bg-green-500 text-white">READY TO TAKE (green)</span>
+              <span className="px-2 py-1 rounded bg-red-600 text-white">NOT READY (red)</span>
+            </div>
+
+            <div className="max-h-64 overflow-auto border rounded">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="text-left p-2">Course</th>
+                    <th className="text-left p-2">Title</th>
+                    <th className="text-left p-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {provisionalPreview.map((item, idx) => {
+                    const badgeClass =
+                      item.status === 'completed'
+                        ? 'bg-gray-400 text-white'
+                        : item.status === 'available'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-red-600 text-white';
+
+                    return (
+                      <tr key={`${item.id}-${idx}`} className="border-t">
+                        <td className="p-2 font-medium">{item.csvCode}</td>
+                        <td className="p-2">{item.name}</td>
+                        <td className="p-2">
+                          <span className={`px-2 py-1 rounded text-xs ${badgeClass}`}>{statusLabel(item.status)}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Course Sections */}
       <div className="space-y-8">
         
@@ -724,6 +1019,38 @@ function AppContent() {
           </div>
         </section>
       </div>
+
+      {showSavePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Save Provisional Sheet</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter your name for the generated provisional sheet.
+            </p>
+            <input
+              type="text"
+              value={exportStudentName}
+              onChange={(e) => setExportStudentName(e.target.value)}
+              placeholder="Student full name"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowSavePopup(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveProvisionalSheet}
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Save CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Progress Summary */}
       <div className="mt-8 p-6 bg-white rounded-lg shadow">
