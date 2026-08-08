@@ -817,6 +817,11 @@ function AppContent() {
 
   const resetProgress = () => {
     setCompletedCourses([]);
+    setProvisionalTemplateRows([]);
+    setProvisionalTemplateName('');
+    setProvisionalError(null);
+    setExportStudentName('');
+    setShowSavePopup(false);
   };
 
   return (
