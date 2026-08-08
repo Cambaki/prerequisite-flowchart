@@ -4,6 +4,7 @@ import { ProgramSelector } from './Components/ProgramSelector';
 import { eeCourses } from './Data/eeCourses';
 import { ceCourses } from './Data/ceCourses';
 import { getCourseStatus, getAvailableCourses, checkPrerequisites } from './Utils/prerequisiteChecker';
+import ExcelJS from 'exceljs';
 import './App.css';
 
 const PROGRESS_STORAGE_KEY = 'prerequisite-flowchart-progress-v1';
@@ -55,16 +56,6 @@ const parseCsv = (csvText) => {
   return lines.map(parseCsvLine);
 };
 
-const csvEscape = (value) => {
-  const raw = value == null ? '' : String(value);
-  if (raw.includes('"') || raw.includes(',') || raw.includes('\n')) {
-    return `"${raw.replace(/"/g, '""')}"`;
-  }
-  return raw;
-};
-
-const toCsv = (rows) => rows.map((row) => row.map(csvEscape).join(',')).join('\n');
-
 const normalizeCourseCode = (value) => {
   if (!value) return '';
   return String(value)
@@ -76,6 +67,32 @@ const normalizeCourseCode = (value) => {
     .replace(/^PHYS-0?(\d{3})$/, 'PHYS-$1')
     .replace(/^EENG-(\d{3})L$/, 'EENG-$1L')
     .replace(/^([A-Z]+)\s(\d+)/, '$1-$2');
+};
+
+const XLSX_STATUS_STYLES = {
+  completed: {
+    fill: 'FFD1D5DB',
+    font: 'FF374151'
+  },
+  available: {
+    fill: 'FFDCFCE7',
+    font: 'FF166534'
+  },
+  blocked: {
+    fill: 'FFFEE2E2',
+    font: 'FF991B1B'
+  },
+  header: {
+    fill: 'FF1F2937',
+    font: 'FFFFFFFF'
+  }
+};
+
+const thinBorder = {
+  top: { style: 'thin', color: { argb: 'FFBFC5D2' } },
+  left: { style: 'thin', color: { argb: 'FFBFC5D2' } },
+  bottom: { style: 'thin', color: { argb: 'FFBFC5D2' } },
+  right: { style: 'thin', color: { argb: 'FFBFC5D2' } }
 };
 
 // Error Boundary Component
@@ -486,56 +503,278 @@ function AppContent() {
     return 'NOT READY';
   };
 
-  const buildProvisionalExportRows = (studentName) => {
-    const rows = provisionalTemplateRows.map((row) => [...row]);
+  const applyStyledCell = (cell, options = {}) => {
+    cell.border = thinBorder;
+    cell.alignment = { vertical: 'middle', wrapText: true, horizontal: options.horizontal || 'left' };
+    cell.font = {
+      name: 'Calibri',
+      size: 11,
+      bold: Boolean(options.bold),
+      color: options.fontColor ? { argb: options.fontColor } : undefined
+    };
 
-    rows.forEach((row) => {
-      [0, 9].forEach((startIdx, statusOffset) => {
-        const rawCode = row[startIdx];
-        const normalized = normalizeCourseCode(rawCode);
-        if (!normalized) return;
+    if (options.fill) {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: options.fill }
+      };
+    }
+  };
 
-        const mappedId = courseLookup.get(normalized) || courseLookup.get(normalized.replace(/-/g, ''));
-        if (!mappedId) return;
+  const styleStatusRange = (row, startCol, endCol, status) => {
+    const statusStyle = XLSX_STATUS_STYLES[status] || XLSX_STATUS_STYLES.blocked;
+    for (let col = startCol; col <= endCol; col += 1) {
+      const cell = row.getCell(col);
+      applyStyledCell(cell, {
+        fill: statusStyle.fill,
+        fontColor: statusStyle.font,
+        horizontal: col === startCol ? 'left' : 'left'
+      });
+    }
+  };
 
-        const status = getCourseStatus(mappedId, completedCourses, currentCourses);
-        const credits = Number(currentCourses[mappedId]?.credits) || 0;
+  const downloadWorkbook = async (workbook, fileName) => {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
-        const earnedCreditsIndex = startIdx + 3;
-        if (status === 'completed') {
-          row[earnedCreditsIndex] = String(credits);
-        } else if (!row[earnedCreditsIndex] || Number(row[earnedCreditsIndex]) === 0) {
-          row[earnedCreditsIndex] = '0';
-        }
+  const buildTemplateWorkbook = (studentName) => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Prerequisite Flowchart';
+    workbook.created = new Date();
+    const worksheet = workbook.addWorksheet('Provisional Sheet', {
+      views: [{ state: 'frozen', ySplit: 5 }]
+    });
 
-        const statusColumnIndex = 20 + statusOffset;
-        row[statusColumnIndex] = statusLabel(status);
+    worksheet.columns = [
+      { width: 16 },
+      { width: 35 },
+      { width: 10 },
+      { width: 10 },
+      { width: 10 },
+      { width: 12 },
+      { width: 12 },
+      { width: 10 },
+      { width: 12 },
+      { width: 16 },
+      { width: 35 },
+      { width: 10 },
+      { width: 10 },
+      { width: 10 },
+      { width: 12 },
+      { width: 12 },
+      { width: 10 },
+      { width: 12 },
+      { width: 12 },
+      { width: 12 }
+    ];
+
+    const leftEarnedRefs = [];
+    const rightEarnedRefs = [];
+
+    provisionalTemplateRows.forEach((rowValues, rowIndex) => {
+      const row = worksheet.addRow(rowValues);
+      row.height = 20;
+
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        applyStyledCell(cell, { horizontal: 'left' });
       });
 
-      for (let i = row.length; i <= 21; i += 1) {
-        row[i] = row[i] || '';
+      const leftCode = normalizeCourseCode(rowValues[0]);
+      const leftId = leftCode && (courseLookup.get(leftCode) || courseLookup.get(leftCode.replace(/-/g, '')));
+      if (leftId) {
+        const leftStatus = getCourseStatus(leftId, completedCourses, currentCourses);
+        styleStatusRange(row, 1, 8, leftStatus);
+        leftEarnedRefs.push(`D${row.number}`);
       }
 
-      const nameCellIndex = row.findIndex((cell) => String(cell || '').trim().toUpperCase().startsWith('ST. NAME:'));
-      if (nameCellIndex >= 0 && studentName) {
-        row[nameCellIndex + 1] = studentName;
+      const rightCode = normalizeCourseCode(rowValues[9]);
+      const rightId = rightCode && (courseLookup.get(rightCode) || courseLookup.get(rightCode.replace(/-/g, '')));
+      if (rightId) {
+        const rightStatus = getCourseStatus(rightId, completedCourses, currentCourses);
+        styleStatusRange(row, 10, 17, rightStatus);
+        rightEarnedRefs.push(`M${row.number}`);
+      }
+
+      if (typeof rowValues[0] === 'string' && rowValues[0].trim().toUpperCase().startsWith('ST. NAME:')) {
+        const nextCell = row.getCell(2);
+        nextCell.value = studentName;
+        applyStyledCell(nextCell, { bold: true, horizontal: 'left' });
+      }
+
+      if (rowIndex <= 2) {
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          applyStyledCell(cell, { bold: true, horizontal: 'left' });
+        });
       }
     });
 
-    const hasHeader = rows.some((row) => row[20] === 'Status (Left Section)' || row[21] === 'Status (Right Section)');
-    if (!hasHeader && rows.length > 5) {
-      rows[5][20] = 'Status (Left Section)';
-      rows[5][21] = 'Status (Right Section)';
-    }
+    worksheet.addRow([]);
+    const summaryTitle = worksheet.addRow(['Auto Summary']);
+    worksheet.mergeCells(summaryTitle.number, 1, summaryTitle.number, 4);
+    applyStyledCell(summaryTitle.getCell(1), {
+      fill: XLSX_STATUS_STYLES.header.fill,
+      fontColor: XLSX_STATUS_STYLES.header.font,
+      bold: true
+    });
 
-    const summaryStartRow = rows.length + 1;
-    rows.push(['']);
-    rows.push(['Auto Summary', 'Metric', 'Value']);
-    rows.push(['', 'Total Completed Credits', '=SUMPRODUCT((U:U="COMPLETED")*C:C)+SUMPRODUCT((V:V="COMPLETED")*L:L)']);
-    rows.push(['', 'Required Credits', String(creditTotals.requiredCredits)]);
-    rows.push(['', 'Remaining Credits', `=MAX(0,C${summaryStartRow + 3}-C${summaryStartRow + 2})`]);
+    const completedRefs = [...leftEarnedRefs, ...rightEarnedRefs];
+    const completedFormula = completedRefs.length > 0 ? `SUM(${completedRefs.join(',')})` : '0';
 
-    return rows;
+    const completedRow = worksheet.addRow(['Total Completed Credits', { formula: completedFormula, result: creditTotals.completedCredits }]);
+    const requiredRow = worksheet.addRow(['Required Credits', creditTotals.requiredCredits]);
+    const remainingRow = worksheet.addRow(['Remaining Credits', {
+      formula: `MAX(0,B${requiredRow.number}-B${completedRow.number})`,
+      result: creditTotals.remaining
+    }]);
+
+    [completedRow, requiredRow, remainingRow].forEach((row) => {
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        applyStyledCell(cell, { horizontal: 'left' });
+      });
+    });
+
+    applyStyledCell(completedRow.getCell(1), { bold: true, fill: 'FFF9FAFB' });
+    applyStyledCell(requiredRow.getCell(1), { bold: true, fill: 'FFF9FAFB' });
+    applyStyledCell(remainingRow.getCell(1), { bold: true, fill: 'FFF9FAFB' });
+
+    return workbook;
+  };
+
+  const buildFallbackWorkbook = () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Prerequisite Flowchart';
+    workbook.created = new Date();
+    const worksheet = workbook.addWorksheet('Provisional Sheet', {
+      views: [{ state: 'frozen', ySplit: 5 }]
+    });
+
+    worksheet.columns = [
+      { width: 16 },
+      { width: 40 },
+      { width: 10 },
+      { width: 10 },
+      { width: 18 },
+      { width: 18 },
+      { width: 18 },
+      { width: 12 },
+      { width: 14 }
+    ];
+
+    const titleRows = [
+      'Department of Electrical and Computer Engineering (ECE)',
+      'College of Engineering (COE), Tuskegee University (TU)',
+      `Provisional Sheet for B.S. in ${selectedProgram === 'EE' ? 'Electrical Engineering (BSEE)' : 'Computer Engineering (BSCE)'} Program`
+    ];
+
+    titleRows.forEach((title) => {
+      const row = worksheet.addRow([title]);
+      worksheet.mergeCells(row.number, 1, row.number, 9);
+      applyStyledCell(row.getCell(1), { bold: true, fill: 'FFF9FAFB' });
+      row.height = 20;
+    });
+
+    worksheet.addRow([]);
+
+    const sections = [
+      { title: 'Foundation / Math Courses', courses: categorizedCourses.foundation },
+      { title: 'General Education & Support Courses', courses: categorizedCourses.genEd },
+      { title: 'Freshman Year', courses: categorizedCourses.freshman },
+      { title: 'Sophomore Year', courses: categorizedCourses.sophomore },
+      { title: 'Junior Year', courses: categorizedCourses.junior },
+      { title: 'Senior Year', courses: categorizedCourses.senior },
+      { title: 'Technical Electives', courses: categorizedCourses.elective },
+      { title: 'Capstone', courses: categorizedCourses.capstone }
+    ];
+
+    const dataStartRows = [];
+
+    sections.forEach((section) => {
+      if (!section.courses || section.courses.length === 0) {
+        return;
+      }
+
+      const sectionRow = worksheet.addRow([section.title]);
+      worksheet.mergeCells(sectionRow.number, 1, sectionRow.number, 9);
+      applyStyledCell(sectionRow.getCell(1), {
+        bold: true,
+        fill: XLSX_STATUS_STYLES.header.fill,
+        fontColor: XLSX_STATUS_STYLES.header.font
+      });
+
+      const headerRow = worksheet.addRow(['Course No', 'Course Title', 'Credit', 'Earned Cr', 'Grade', 'Substitute', 'Univ.', 'Trns.Cr', 'Status']);
+      headerRow.eachCell((cell) => {
+        applyStyledCell(cell, {
+          bold: true,
+          fill: 'FFE5E7EB',
+          horizontal: 'center'
+        });
+      });
+
+      section.courses.forEach((course) => {
+        const status = getCourseStatus(course.id, completedCourses, currentCourses);
+        const earnedCredits = status === 'completed' ? Number(course.credits) || 0 : 0;
+        const courseRow = worksheet.addRow([
+          course.id,
+          course.name,
+          Number(course.credits) || 0,
+          earnedCredits,
+          '',
+          '',
+          '',
+          '',
+          statusLabel(status)
+        ]);
+        dataStartRows.push(courseRow.number);
+
+        courseRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          applyStyledCell(cell, {
+            fill: XLSX_STATUS_STYLES[status].fill,
+            fontColor: XLSX_STATUS_STYLES[status].font,
+            horizontal: colNumber === 2 ? 'left' : 'center'
+          });
+        });
+      });
+
+      worksheet.addRow([]);
+    });
+
+    const summaryTitle = worksheet.addRow(['Credit Summary']);
+    worksheet.mergeCells(summaryTitle.number, 1, summaryTitle.number, 4);
+    applyStyledCell(summaryTitle.getCell(1), {
+      bold: true,
+      fill: XLSX_STATUS_STYLES.header.fill,
+      fontColor: XLSX_STATUS_STYLES.header.font
+    });
+
+    const firstDataRow = Math.min(...dataStartRows);
+    const lastDataRow = Math.max(...dataStartRows);
+    const completedRow = worksheet.addRow(['Credits Completed', {
+      formula: `SUM(D${firstDataRow}:D${lastDataRow})`,
+      result: creditTotals.completedCredits
+    }]);
+    const requiredRow = worksheet.addRow(['Required Credits', creditTotals.requiredCredits]);
+    const remainingRow = worksheet.addRow(['Remaining Credits', {
+      formula: `MAX(0,B${requiredRow.number}-B${completedRow.number})`,
+      result: creditTotals.remaining
+    }]);
+
+    [completedRow, requiredRow, remainingRow].forEach((row) => {
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        applyStyledCell(cell, { horizontal: 'left' });
+      });
+    });
+
+    return workbook;
   };
 
   const handleProvisionalFileUpload = async (event) => {
@@ -556,28 +795,21 @@ function AppContent() {
     }
   };
 
-  const saveProvisionalSheet = () => {
+  const saveProvisionalSheet = async () => {
     const cleanName = exportStudentName.trim();
     if (!cleanName) {
       setProvisionalError('Please enter your name before saving the provisional sheet.');
       return;
     }
 
-    const exportRows = buildProvisionalExportRows(cleanName);
-    const csvString = toCsv(exportRows);
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
     const programTag = selectedProgram === 'EE' ? 'Electrical-Engineering' : 'Computer-Engineering';
     const safeName = cleanName.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '');
 
-    link.href = url;
-    link.download = `${safeName || 'student'}-Provisional-${programTag}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const workbook = provisionalTemplateRows.length > 0
+      ? buildTemplateWorkbook(cleanName)
+      : buildFallbackWorkbook();
+
+    await downloadWorkbook(workbook, `${safeName || 'student'}-Provisional-${programTag}.xlsx`);
 
     setShowSavePopup(false);
     setProvisionalError(null);
@@ -777,8 +1009,11 @@ function AppContent() {
       <div className="mb-8 p-6 bg-white rounded-lg shadow">
         <h3 className="text-xl font-bold text-gray-800 mb-2">Provisional Sheet Generator</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Upload your provisional CSV template, then save a new sheet from your current selections.
+          Upload your provisional CSV template if you want to preserve the example layout, or save a built-in formatted Excel sheet directly from your current selections.
           Completed courses are gray, ready courses are green, and not-ready courses are red.
+        </p>
+        <p className="text-xs text-gray-500 mb-4">
+          Uploading a template is optional. If none is uploaded, the export still generates a styled .xlsx file.
         </p>
 
         <div className="flex flex-wrap gap-4 items-center mb-4">
@@ -797,10 +1032,9 @@ function AppContent() {
               setExportStudentName('');
               setShowSavePopup(true);
             }}
-            disabled={provisionalTemplateRows.length === 0}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
           >
-            Save Generated Provisional CSV
+            Save Excel File
           </button>
 
           {provisionalTemplateName && (
