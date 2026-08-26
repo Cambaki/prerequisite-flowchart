@@ -69,7 +69,33 @@ const normalizeCourseCode = (value) => {
     .replace(/^([A-Z]+)\s(\d+)/, '$1-$2');
 };
 
+const DEFAULT_SUPPLEMENTAL_COURSES = [
+  {
+    id: 'SUP-PHYS-I',
+    name: 'Supplemental Physics I',
+    credits: 3,
+    note: 'Extra physics sequence or preparatory course if advising recommends it.'
+  },
+  {
+    id: 'SUP-PHYS-II',
+    name: 'Supplemental Physics II',
+    credits: 3,
+    note: 'Additional physics support for students needing a second mechanics/electromagnetics course.'
+  },
+  {
+    id: 'SUP-PHYS-LAB',
+    name: 'Supplemental Physics Lab',
+    credits: 1,
+    note: 'Lab-based support course for hands-on reinforcement or repeated lab work.'
+  }
+];
+
 const XLSX_STATUS_STYLES = {
+  supplemental: {
+    fill: 'FFE0E7FF',
+    font: 'FF312E81'
+  },
+
   completed: {
     fill: 'FFD1D5DB',
     font: 'FF374151'
@@ -145,6 +171,7 @@ function AppContent() {
   const [showDetails, setShowDetails] = useState(true);
   const [showMathReadinessPopup, setShowMathReadinessPopup] = useState(true);
   const [guidanceMessage, setGuidanceMessage] = useState(null);
+  const [supplementalCourses, setSupplementalCourses] = useState(DEFAULT_SUPPLEMENTAL_COURSES);
   const [provisionalTemplateRows, setProvisionalTemplateRows] = useState([]);
   const [provisionalTemplateName, setProvisionalTemplateName] = useState('');
   const [showSavePopup, setShowSavePopup] = useState(false);
@@ -500,7 +527,30 @@ function AppContent() {
   const statusLabel = (status) => {
     if (status === 'completed') return 'COMPLETED';
     if (status === 'available') return 'READY TO TAKE';
+    if (status === 'supplemental') return 'OPTIONAL';
     return 'NOT READY';
+  };
+
+  const updateSupplementalCourse = (index, field, value) => {
+    setSupplementalCourses(prev => {
+      const next = [...prev];
+      next[index] = {
+        ...next[index],
+        [field]: field === 'credits' ? Number(value) || 0 : value
+      };
+      return next;
+    });
+  };
+
+  const addSupplementalCourse = () => {
+    setSupplementalCourses(prev => [
+      ...prev,
+      { id: `SUP-${prev.length + 1}`, name: 'New Supplemental Course', credits: 3, note: 'Advisor-approved supplemental course.' }
+    ]);
+  };
+
+  const removeSupplementalCourse = (index) => {
+    setSupplementalCourses(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const applyStyledCell = (cell, options = {}) => {
@@ -688,6 +738,13 @@ function AppContent() {
     const sections = [
       { title: 'Foundation / Math Courses', courses: categorizedCourses.foundation },
       { title: 'General Education & Support Courses', courses: categorizedCourses.genEd },
+      { title: 'Supplemental / Additional Courses', courses: supplementalCourses.map((course, index) => ({
+        ...course,
+        id: course.id || `SUP-${index + 1}`,
+        name: course.name || 'Supplemental Course',
+        credits: Number(course.credits) || 0,
+        type: 'supplemental'
+      })) },
       { title: 'Freshman Year', courses: categorizedCourses.freshman },
       { title: 'Sophomore Year', courses: categorizedCourses.sophomore },
       { title: 'Junior Year', courses: categorizedCourses.junior },
@@ -721,7 +778,7 @@ function AppContent() {
       });
 
       section.courses.forEach((course) => {
-        const status = getCourseStatus(course.id, completedCourses, currentCourses);
+        const status = course.type === 'supplemental' ? 'supplemental' : getCourseStatus(course.id, completedCourses, currentCourses);
         const earnedCredits = status === 'completed' ? Number(course.credits) || 0 : 0;
         const courseRow = worksheet.addRow([
           course.id,
@@ -737,9 +794,10 @@ function AppContent() {
         dataStartRows.push(courseRow.number);
 
         courseRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          const style = XLSX_STATUS_STYLES[status] || XLSX_STATUS_STYLES.blocked;
           applyStyledCell(cell, {
-            fill: XLSX_STATUS_STYLES[status].fill,
-            fontColor: XLSX_STATUS_STYLES[status].font,
+            fill: style.fill,
+            fontColor: style.font,
             horizontal: colNumber === 2 ? 'left' : 'center'
           });
         });
@@ -1141,6 +1199,91 @@ function AppContent() {
             </div>
           </section>
         )}
+
+        {/* Supplemental / Additional Courses */}
+        <section>
+          <h2 className="text-2xl font-bold text-indigo-800 mb-4">
+            🧪 Supplemental / Additional Courses
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Optional space for students who may need extra preparation, such as a second physics sequence, bridge work, or other advisor-approved support courses.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {supplementalCourses.map((course, index) => (
+              <div
+                key={`${course.id}-${index}`}
+                className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 shadow-sm transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                    Course {index + 1}
+                  </span>
+                  {supplementalCourses.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSupplementalCourse(index)}
+                      className="text-xs text-red-600 hover:text-red-700 font-semibold"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Course code / section
+                    <input
+                      type="text"
+                      value={course.id}
+                      onChange={(e) => updateSupplementalCourse(index, 'id', e.target.value)}
+                      className="mt-1 w-full border border-indigo-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Course title
+                    <input
+                      type="text"
+                      value={course.name}
+                      onChange={(e) => updateSupplementalCourse(index, 'name', e.target.value)}
+                      className="mt-1 w-full border border-indigo-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Credits
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={course.credits}
+                      onChange={(e) => updateSupplementalCourse(index, 'credits', e.target.value)}
+                      className="mt-1 w-full border border-indigo-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Advisor note
+                    <input
+                      type="text"
+                      value={course.note || ''}
+                      onChange={(e) => updateSupplementalCourse(index, 'note', e.target.value)}
+                      className="mt-1 w-full border border-indigo-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    />
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addSupplementalCourse}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            + Add supplemental course
+          </button>
+        </section>
 
         {/* Freshman Year */}
         <section>
